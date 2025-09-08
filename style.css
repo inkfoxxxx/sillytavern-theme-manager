@@ -1,4 +1,4 @@
-/* 主题管理器插件的样式 */
+/* 主题仪表盘 (v3.0) 样式 */
 #theme-manager-panel {
     background-color: #3a3a3a;
     border-radius: 8px;
@@ -12,23 +12,56 @@
     color: #eaeaea;
     border-bottom: 1px solid #5a5a5a;
     padding-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.theme-category {
+/* 新增：功能按钮区域 */
+.theme-manager-actions {
+    display: flex;
+    gap: 8px;
     margin-bottom: 15px;
+}
+
+.theme-manager-actions input[type="search"] {
+    flex-grow: 1;
+    background-color: #2a2a2a;
+    border: 1px solid #5a5a5a;
+    color: #eaeaea;
+    border-radius: 4px;
+    padding: 5px 8px;
+}
+
+.theme-manager-actions button {
+    background-color: #5a5a5a;
+    color: #eaeaea;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.theme-manager-actions button:hover {
+    background-color: #6a6a6a;
 }
 
 .theme-category-title {
     font-weight: bold;
-    color: #66d9ef; /* 亮蓝色，醒目 */
+    color: #66d9ef;
     cursor: pointer;
-    padding: 5px;
+    padding: 8px 5px;
     background-color: #454545;
     border-radius: 4px;
+    margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .theme-category-title::before {
-    content: '📁 '; /* 文件夹图标 */
+    content: '📁 ';
 }
 
 .theme-list {
@@ -42,6 +75,9 @@
     border-radius: 4px;
     list-style: none;
     color: #dcdcdc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .theme-item:hover {
@@ -49,7 +85,27 @@
 }
 
 .theme-item.active {
-    background-color: #007bff; /* 蓝色高亮 */
+    background-color: #007bff;
     color: white;
     font-weight: bold;
+}
+
+/* 新增：收藏按钮样式 */
+.favorite-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.5;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.favorite-btn:hover {
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.theme-item:hover .favorite-btn,
+.favorite-btn.is-favorite {
+    opacity: 1;
 }

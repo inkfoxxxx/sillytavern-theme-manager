@@ -1,142 +1,124 @@
 (function () {
     'use strict';
 
-    // 等待SillyTavern加载完成
-    document.addEventListener('DOMContentLoaded', () => {
-        // 目标：找到并改造UI主题选择器
-        const targetSection = document.querySelector('#user-settings > .background_theming');
-
-        if (!targetSection) {
-            console.log("Theme Manager: 找不到主题设置区域, 插件无法启动。");
-            return;
-        }
-
-        // 1. 获取原始的下拉选择框和它的容器
+    // 设置一个定时器，持续检查目标元素是否存在
+    const initInterval = setInterval(() => {
+        // 我们要找的目标是原始的主题下拉选择框
         const originalSelect = document.querySelector('#theme_select');
-        const originalContainer = originalSelect.parentElement;
 
-        if (!originalSelect || !originalContainer) {
-            console.log("Theme Manager: 找不到原始主题选择框, 插件无法启动。");
-            return;
-        }
+        // 如果找到了这个选择框，并且我们的插件还没有被初始化过
+        if (originalSelect && !document.querySelector('#theme-manager-panel')) {
+            console.log("Theme Manager: 找到了目标元素, 开始初始化...");
 
-        // 2. 隐藏原始的选择框，但保留它，因为SillyTavern的内部逻辑可能还需要它
-        originalContainer.style.display = 'none';
+            // 找到了就立刻停止定时器，避免重复执行
+            clearInterval(initInterval);
 
-        // 3. 创建我们的新管理面板
-        const managerPanel = document.createElement('div');
-        managerPanel.id = 'theme-manager-panel';
-        managerPanel.innerHTML = '<h4>🎨 主题管理器</h4>';
+            try {
+                // 获取选择框的父容器
+                const originalContainer = originalSelect.parentElement;
+                if (!originalContainer) return;
 
-        // 4. 将我们的面板插入到原始选择框的后面
-        originalContainer.parentNode.insertBefore(managerPanel, originalContainer.nextSibling);
+                // 1. 隐藏原始的选择框容器
+                originalContainer.style.display = 'none';
 
-        // 5. 解析主题并生成新的UI
-        function buildThemeUI() {
-            // 清空旧内容
-            const oldContent = managerPanel.querySelector('.theme-content');
-            if (oldContent) {
-                oldContent.remove();
-            }
+                // 2. 创建我们的新管理面板
+                const managerPanel = document.createElement('div');
+                managerPanel.id = 'theme-manager-panel';
+                managerPanel.innerHTML = '<h4>🎨 主题管理器</h4>';
 
-            const contentWrapper = document.createElement('div');
-            contentWrapper.className = 'theme-content';
+                // 3. 将我们的面板插入到原始容器的后面
+                originalContainer.parentNode.insertBefore(managerPanel, originalContainer.nextSibling);
 
-            const themes = {};
-            // 从原始选择框中读取所有主题选项
-            Array.from(originalSelect.options).forEach(option => {
-                const themeName = option.value;
-                let category = '未分类';
-                let displayName = themeName;
+                // 4. 解析主题并生成新的UI
+                function buildThemeUI() {
+                    const oldContent = managerPanel.querySelector('.theme-content');
+                    if (oldContent) oldContent.remove();
 
-                // 命名规则解析：用 "-" 或 "】" 或 " " 分隔
-                const separators = ['-', '】', ' '];
-                let splitIndex = -1;
-                for (const sep of separators) {
-                    splitIndex = themeName.indexOf(sep);
-                    if (splitIndex > 0) break;
-                }
+                    const contentWrapper = document.createElement('div');
+                    contentWrapper.className = 'theme-content';
 
+                    const themes = {};
+                    Array.from(originalSelect.options).forEach(option => {
+                        const themeName = option.value;
+                        if (!themeName) return; // 跳过空的选项
 
-                if (splitIndex > 0) {
-                    category = themeName.substring(0, splitIndex).trim();
-                    displayName = themeName.substring(splitIndex + 1).trim();
-                }
+                        let category = '未分类';
+                        let displayName = themeName;
+                        
+                        // 命名规则解析，支持多种分隔符
+                        const separators = ['-', '】', ']', ' ', '_'];
+                        for (const sep of separators) {
+                            const splitIndex = themeName.indexOf(sep);
+                            if (splitIndex > 0) {
+                                category = themeName.substring(0, splitIndex).trim();
+                                displayName = themeName.substring(splitIndex + 1).trim();
+                                break; 
+                            }
+                        }
 
-                if (!themes[category]) {
-                    themes[category] = [];
-                }
-                themes[category].push({ value: themeName, display: displayName });
-            });
-
-            // 按分类名称排序
-            const sortedCategories = Object.keys(themes).sort();
-
-            sortedCategories.forEach(category => {
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = 'theme-category';
-
-                const title = document.createElement('div');
-                title.className = 'theme-category-title';
-                title.textContent = category;
-                
-                const list = document.createElement('ul');
-                list.className = 'theme-list';
-                // 默认折叠
-                list.style.display = 'none';
-
-                // 点击标题展开/折叠
-                title.addEventListener('click', () => {
-                    list.style.display = list.style.display === 'none' ? 'block' : 'none';
-                    title.textContent = list.style.display === 'none' ? category : category;
-                });
-
-                themes[category].forEach(theme => {
-                    const item = document.createElement('li');
-                    item.className = 'theme-item';
-                    item.textContent = theme.display;
-                    item.dataset.value = theme.value;
-
-                    // 点击主题项，就去同步更新背后隐藏的那个原始选择框，从而触发SillyTavern的换肤功能
-                    item.addEventListener('click', () => {
-                        originalSelect.value = theme.value;
-                        // 触发一个change事件，让SillyTavern知道我们改了选项
-                        originalSelect.dispatchEvent(new Event('change'));
-                        // 更新我们UI上的高亮状态
-                        updateActiveState();
+                        if (!themes[category]) themes[category] = [];
+                        themes[category].push({ value: themeName, display: displayName });
                     });
 
-                    list.appendChild(item);
-                });
+                    const sortedCategories = Object.keys(themes).sort((a, b) => a.localeCompare(b, 'zh-CN'));
 
-                categoryDiv.appendChild(title);
-                categoryDiv.appendChild(list);
-                contentWrapper.appendChild(categoryDiv);
-            });
-            
-            managerPanel.appendChild(contentWrapper);
-            updateActiveState();
-        }
-        
-        // 更新哪个主题项是当前激活的
-        function updateActiveState() {
-            const currentValue = originalSelect.value;
-            managerPanel.querySelectorAll('.theme-item').forEach(item => {
-                if (item.dataset.value === currentValue) {
-                    item.classList.add('active');
-                } else {
-                    item.classList.remove('active');
+                    sortedCategories.forEach(category => {
+                        const categoryDiv = document.createElement('div');
+                        categoryDiv.className = 'theme-category';
+                        const title = document.createElement('div');
+                        title.className = 'theme-category-title';
+                        title.textContent = category;
+                        const list = document.createElement('ul');
+                        list.className = 'theme-list';
+                        list.style.display = 'none';
+
+                        title.addEventListener('click', () => {
+                            list.style.display = (list.style.display === 'none') ? 'block' : 'none';
+                        });
+
+                        themes[category].forEach(theme => {
+                            const item = document.createElement('li');
+                            item.className = 'theme-item';
+                            item.textContent = theme.display;
+                            item.dataset.value = theme.value;
+
+                            item.addEventListener('click', () => {
+                                originalSelect.value = theme.value;
+                                originalSelect.dispatchEvent(new Event('change'));
+                            });
+                            list.appendChild(item);
+                        });
+
+                        categoryDiv.appendChild(title);
+                        categoryDiv.appendChild(list);
+                        contentWrapper.appendChild(categoryDiv);
+                    });
+
+                    managerPanel.appendChild(contentWrapper);
+                    updateActiveState();
                 }
-            });
-        }
-        
-        // 初始构建UI
-        buildThemeUI();
-        
-        // SillyTavern可能会动态刷新主题列表，我们需要监听变化
-        const observer = new MutationObserver(buildThemeUI);
-        observer.observe(originalSelect, { childList: true });
 
-        console.log("Theme Manager插件加载成功！");
-    });
+                function updateActiveState() {
+                    const currentValue = originalSelect.value;
+                    managerPanel.querySelectorAll('.theme-item').forEach(item => {
+                        item.classList.toggle('active', item.dataset.value === currentValue);
+                    });
+                }
+
+                // 监听原始选择框的变化，以同步我们的UI
+                originalSelect.addEventListener('change', updateActiveState);
+
+                // 初始构建UI
+                buildThemeUI();
+
+                console.log("Theme Manager: 插件初始化成功！");
+
+            } catch (error) {
+                console.error("Theme Manager: 初始化过程中发生错误:", error);
+                // 如果出错，最好把原始的UI显示回来
+                if(originalSelect) originalSelect.parentElement.style.display = '';
+            }
+        }
+    }, 250); // 每250毫秒检查一次
+
 })();

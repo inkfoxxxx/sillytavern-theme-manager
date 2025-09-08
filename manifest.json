@@ -1,0 +1,10 @@
+{
+  "name": "Theme Manager",
+  "display_name": "主题管理器 (Theme Manager)",
+  "author": "你的名字",
+  "version": "1.0.0",
+  "description": "一个用于分类和管理SillyTavern主题的插件，通过命名规范实现虚拟文件夹。",
+  "requires": ["common.js"],
+  "js": "script.js",
+  "css": "style.css"
+}

@@ -1,0 +1,55 @@
+/* 主题管理器插件的样式 */
+#theme-manager-panel {
+    background-color: #3a3a3a;
+    border-radius: 8px;
+    padding: 15px;
+    margin-top: 10px;
+    border: 1px solid #4a4a4a;
+}
+
+#theme-manager-panel h4 {
+    margin-top: 0;
+    color: #eaeaea;
+    border-bottom: 1px solid #5a5a5a;
+    padding-bottom: 10px;
+}
+
+.theme-category {
+    margin-bottom: 15px;
+}
+
+.theme-category-title {
+    font-weight: bold;
+    color: #66d9ef; /* 亮蓝色，醒目 */
+    cursor: pointer;
+    padding: 5px;
+    background-color: #454545;
+    border-radius: 4px;
+}
+
+.theme-category-title::before {
+    content: '📁 '; /* 文件夹图标 */
+}
+
+.theme-list {
+    padding-left: 20px;
+    margin-top: 5px;
+}
+
+.theme-item {
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 4px;
+    list-style: none;
+    color: #dcdcdc;
+}
+
+.theme-item:hover {
+    background-color: #5a5a5a;
+}
+
+.theme-item.active {
+    background-color: #007bff; /* 蓝色高亮 */
+    color: white;
+    font-weight: bold;
+}

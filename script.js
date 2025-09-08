@@ -3,12 +3,12 @@
 
     // 设置一个定时器，持续检查目标元素是否存在
     const initInterval = setInterval(() => {
-        // 我们要找的目标是原始的主题下拉选择框
-        const originalSelect = document.querySelector('#theme_select');
+        // 【唯一的修改在这里！】我们将目标从 '#theme_select' 修正为你找到的 '#themes'
+        const originalSelect = document.querySelector('#themes');
 
         // 如果找到了这个选择框，并且我们的插件还没有被初始化过
         if (originalSelect && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager: 找到了目标元素, 开始初始化...");
+            console.log("Theme Manager: 找到了正确的目标元素 #themes, 开始初始化...");
 
             // 找到了就立刻停止定时器，避免重复执行
             clearInterval(initInterval);

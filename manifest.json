@@ -4,7 +4,8 @@
   "author": "inkfoxxxx",
   "version": "1.0.0",
   "description": "一个功能齐全的主题管理器，支持分类、搜索、收藏、删除和重命名。",
-  "requires": ["axios.js", "common.js"],
+  "requires": [],
   "js": "script.js",
   "css": "style.css"
 }
+

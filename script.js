@@ -1,12 +1,14 @@
 (function () {
     'use strict';
 
+    // 【核心修改】从 common.js 模块中解构出我们需要的函数
+    const { getRequestHeaders } = window.SillyTavern.extensions.common;
+
     const FAVORITES_KEY = 'themeManager_favorites';
 
-    // 【核心修改】使用浏览器内置的 fetch API，不再依赖 axios
     async function apiRequest(endpoint, method = 'POST', body = {}) {
         try {
-            const headers = getRequestHeaders(); // 这个函数是 SillyTavern 全局提供的，我们仍然可以直接使用
+            const headers = getRequestHeaders();
             
             const options = {
                 method: method,
@@ -24,7 +26,6 @@
                 throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
             }
 
-            // 检查响应是否为空
             const responseText = await response.text();
             return responseText ? JSON.parse(responseText) : {};
 
@@ -35,7 +36,7 @@
         }
     }
 
-    // --- 后续代码与之前版本完全相同，只是粘贴在这里以确保完整 ---
+    // --- 后续所有代码都保持不变 ---
 
     async function getAllThemes() {
         const settings = await apiRequest('settings/get', 'POST', {});
@@ -54,7 +55,7 @@
         const originalSelect = document.querySelector('#themes');
 
         if (originalSelect && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager v5.0 (Final): 找到了目标元素，开始初始化...");
+            console.log("Theme Manager v6.0 (Victory): 找到了目标元素，开始初始化...");
             clearInterval(initInterval);
 
             try {
@@ -65,7 +66,7 @@
                 const managerPanel = document.createElement('div');
                 managerPanel.id = 'theme-manager-panel';
                 managerPanel.innerHTML = `
-                    <h4><span>🎨 主题仪表盘 (最终版)</span></h4>
+                    <h4><span>🎨 主题仪表盘 (最终胜利版)</span></h4>
                     <div class="theme-manager-actions">
                         <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
                         <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>

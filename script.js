@@ -7,7 +7,7 @@
         const saveAsButton = document.querySelector('#ui-preset-save-button');
 
         if (originalSelect && updateButton && saveAsButton && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v18.0 Final Synced): 初始化...");
+            console.log("Theme Manager (v19.0 Final State Sync): 初始化...");
             clearInterval(initInterval);
 
             try {
@@ -240,8 +240,14 @@
                     if (!confirm(`确定要删除选中的 ${selectedForBatch.size} 个主题吗？`)) return;
                     showLoader();
                     for (const themeName of selectedForBatch) {
+                        const isCurrentlyActive = originalSelect.value === themeName;
                         await deleteTheme(themeName);
                         manualUpdateOriginalSelect('delete', themeName);
+                        if (isCurrentlyActive) {
+                            const azureOption = originalSelect.querySelector('option[value="Azure"]');
+                            originalSelect.value = azureOption ? 'Azure' : (originalSelect.options[0]?.value || '');
+                            originalSelect.dispatchEvent(new Event('change'));
+                        }
                     }
                     selectedForBatch.clear();
                     hideLoader();
@@ -308,12 +314,12 @@
                         }
                     }
 
-                    // 【核心修复】引入一个短暂的延迟，给服务器喘息时间
-                    setTimeout(async () => {
-                        await reloadThemes();
-                        hideLoader();
-                        toastr.success(`批量导入完成！成功 ${successCount} 个，失败 ${errorCount} 个。`);
-                    }, 500); // 延迟半秒
+                    hideLoader();
+                    toastr.success(`批量导入完成！成功 ${successCount} 个，失败 ${errorCount} 个。正在刷新页面以应用更改...`);
+                    
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
                     
                     event.target.value = ''; 
                 });
@@ -415,10 +421,17 @@
                             }
                         }
                         else if (button && button.classList.contains('delete-btn')) {
+                            const isCurrentlyActive = originalSelect.value === themeName;
                             if (confirm(`确定要删除主题 "${themeItem.querySelector('.theme-item-name').textContent}" 吗？`)) {
                                 await deleteTheme(themeName);
                                 toastr.success(`主题 "${themeItem.querySelector('.theme-item-name').textContent}" 已删除！`);
                                 manualUpdateOriginalSelect('delete', themeName);
+                                if (isCurrentlyActive) {
+                                    const azureOption = originalSelect.querySelector('option[value="Azure"]');
+                                    originalSelect.value = azureOption ? 'Azure' : (originalSelect.options[0]?.value || '');
+                                    originalSelect.dispatchEvent(new Event('change'));
+                                    toastr.info('当前主题已被删除，已切换回默认主题。');
+                                }
                             }
                         } else {
                             originalSelect.value = themeName;
@@ -444,7 +457,7 @@
                 observer.observe(originalSelect, { childList: true, subtree: true, characterData: true });
 
                 buildThemeUI().then(() => {
-                    const isInitiallyCollapsed = localStorage.getItem(COLLAPSE_KEY) === 'false';
+                    const isInitiallyCollapsed = localStorage.getItem(COLLAPSE_KEY) !== 'false';
                     setCollapsed(isInitiallyCollapsed, false);
                 });
 

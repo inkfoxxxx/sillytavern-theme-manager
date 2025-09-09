@@ -7,11 +7,11 @@
         const saveAsButton = document.querySelector('#ui-preset-save-button');
 
         if (originalSelect && updateButton && saveAsButton && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v16.0 Batch Import): 初始化...");
+            console.log("Theme Manager (v17.0 Final Sync): 初始化...");
             clearInterval(initInterval);
 
             try {
-                const { getRequestHeaders, showLoader, hideLoader } = SillyTavern.getContext();
+                const { getRequestHeaders, showLoader, hideLoader, reloadThemes } = SillyTavern.getContext();
                 const FAVORITES_KEY = 'themeManager_favorites';
                 const COLLAPSE_KEY = 'themeManager_collapsed';
 
@@ -301,7 +301,6 @@
 
                             if (themeObject && themeObject.name && typeof themeObject.main_text_color !== 'undefined') {
                                 await saveTheme(themeObject);
-                                manualUpdateOriginalSelect('add', null, themeObject.name);
                                 successCount++;
                             } else {
                                 console.warn(`文件 "${file.name}" 不是一个有效的主题文件，已跳过。`);
@@ -312,6 +311,8 @@
                             errorCount++;
                         }
                     }
+
+                    await reloadThemes();
 
                     hideLoader();
                     toastr.success(`批量导入完成！成功 ${successCount} 个，失败 ${errorCount} 个。`);
@@ -324,7 +325,7 @@
                     const newTag = prompt('请输入要添加的新标签（文件夹名）：');
                     if (newTag && newTag.trim()) {
                         await performBatchRename(oldName => `[${newTag.trim()}] ${oldName}`);
-                        toastr.success(`已为选中主题添加标签 "[${newTag.trim()}]"并自动分类`);
+                        toastr.success(`已为选中主题添加标签 "[${newTag.trim()}]"`);
                     }
                 });
                 document.querySelector('#batch-move-tag-btn').addEventListener('click', async () => {

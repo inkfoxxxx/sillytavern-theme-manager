@@ -1,12 +1,10 @@
 {
   "name": "Theme Manager",
-  "display_name": "主题管理器 (Theme Manager)",
+  "display_name": "美化管理助手",
   "author": "inkfoxxxx",
   "version": "1.0.0",
-  "description": "一个用于分类和管理SillyTavern主题的插件，通过命名规范实现虚拟文件夹。",
-  "requires": ["axios.js"],
+  "description": "一个功能齐全的主题管理器，支持分类、搜索、收藏、删除和重命名。",
+  "requires": ["axios.js", "common.js"],
   "js": "script.js",
   "css": "style.css"
 }
-
-

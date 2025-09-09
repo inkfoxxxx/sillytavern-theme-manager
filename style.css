@@ -1,13 +1,13 @@
-/* 主题仪表盘 (v16.0 最终自适应主题版) 样式 */
+/* 主题仪表盘 (v17.0 最终官方变量版) 样式 */
 
-/* 【核心修改】所有颜色都从写死的值，改为了从 SillyTavern 主题变量中动态获取 */
+/* 【核心修复】所有颜色都替换为 SillyTavern 官方最可能使用的 CSS 变量 */
 
 #theme-manager-panel { 
-    background-color: var(--panel-bg-color, #3a3a3a); /* 使用面板背景色变量 */
+    background-color: var(--blur-tint-color); /* 使用官方“UI背景”变量 */
     border-radius: 8px; 
     padding: 10px; 
     margin-top: 10px; 
-    border: 1px solid var(--border-color, #4a4a4a); /* 使用边框颜色变量 */
+    border: 1px solid var(--border-color); /* 使用官方“UI边框”变量 */
     max-width: 500px; 
     width: 100%; 
     box-sizing: border-box; 
@@ -22,19 +22,19 @@
     align-items: center; 
 }
 #theme-manager-header:hover { 
-    background-color: var(--hover-bg-color, #454545); /* 使用悬停背景色变量 */
+    background-color: rgba(0,0,0,0.1); /* 使用一个通用的半透明黑色作为悬停效果 */
 }
 
 #theme-manager-header h4 { 
     margin: 0; 
     border: none; 
     padding: 0; 
-    color: var(--main-text-color, #eaeaea); /* 使用主文字颜色变量 */
+    color: var(--main-text-color); /* 使用官方“主要文本”变量 */
 }
 
 #theme-manager-toggle-icon { 
     transition: transform 0.3s ease; 
-    color: var(--main-text-color, #eaeaea);
+    color: var(--main-text-color);
 }
 #theme-manager-toggle-icon.collapsed { transform: rotate(-90deg); }
 
@@ -46,45 +46,44 @@
 .theme-manager-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
 .theme-manager-actions input[type="search"] { 
     flex-grow: 1; 
-    background-color: var(--input-bg-color, #2a2a2a); /* 使用输入框背景色变量 */
-    border: 1px solid var(--border-color, #5a5a5a); 
-    color: var(--main-text-color, #eaeaea); 
+    background-color: rgba(0,0,0,0.2); 
+    border: 1px solid var(--border-color); 
+    color: var(--main-text-color); 
     border-radius: 4px; 
     padding: 5px 8px; 
     min-width: 150px; 
 }
 
-.theme-manager-actions button { 
-    background-color: var(--secondary-button-bg, #5a5a5a); /* 使用次要按钮背景色变量 */
-    color: var(--main-text-color, #eaeaea); 
-    border: none; 
+.theme-manager-actions button, #batch-actions-bar button { 
+    background-color: rgba(128,128,128,0.2); 
+    color: var(--main-text-color); 
+    border: 1px solid var(--border-color); 
     padding: 5px 10px; 
     border-radius: 4px; 
     cursor: pointer; 
     transition: background-color 0.2s; 
     white-space: nowrap; 
 }
-.theme-manager-actions button:hover { 
-    background-color: var(--secondary-button-hover-bg, #6a6a6a); 
+.theme-manager-actions button:hover, #batch-actions-bar button:hover { 
+    background-color: rgba(128,128,128,0.4); 
 }
-.theme-manager-actions button.selected { 
-    background-color: var(--primary-color, #007bff); /* 使用主色调变量 */
+.theme-manager-actions button.selected, #batch-actions-bar button { 
+    background-color: var(--primary-color, #007bff); /* 主色调，通常用于按钮 */
+    color: white;
+    border-color: transparent;
 }
 
-#batch-actions-bar { display: none; flex-wrap: wrap; gap: 8px; background-color: var(--hover-bg-color, #454545); padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+#batch-actions-bar { display: none; flex-wrap: wrap; gap: 8px; background-color: transparent; padding: 0; border-radius: 4px; margin-bottom: 10px; }
 #batch-actions-bar.visible { display: flex; }
-#batch-actions-bar button { 
-    background-color: var(--primary-color, #007bff); 
-}
 
 #native-buttons-container { display: flex; gap: 5px; margin-left: auto; }
 
 .theme-category-title { 
     font-weight: bold; 
-    color: var(--accent-color, #66d9ef); /* 使用强调色变量 */
+    color: var(--quote-color); /* 使用官方“引用文本”颜色作为强调色 */
     cursor: pointer; 
     padding: 8px 5px; 
-    background-color: var(--hover-bg-color, #454545); 
+    background-color: rgba(0,0,0,0.15); 
     border-radius: 4px; 
     margin-bottom: 5px; 
     display: flex; 
@@ -95,21 +94,19 @@
 .dissolve-folder-btn { 
     background: none; 
     border: none; 
-    color: var(--danger-color, #ff5555); /* 使用危险/删除色变量 */
+    color: var(--danger-color, #ff5555); 
     cursor: pointer; 
     font-size: 14px; 
     opacity: 0.7; 
 }
-.dissolve-folder-btn:hover { opacity: 1; }
 
 .theme-list { padding-left: 0; margin-top: 5px; }
-.theme-item { padding: 8px; border-radius: 4px; list-style: none; color: var(--text-color, #dcdcdc); display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 2px solid transparent; transition: background-color 0.2s, border-color 0.2s; }
-.theme-item:hover { background-color: var(--hover-bg-color, #5a5a5a); }
+.theme-item { padding: 8px; border-radius: 4px; list-style: none; color: var(--main-text-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 2px solid transparent; transition: background-color 0.2s, border-color 0.2s; }
+.theme-item:hover { background-color: rgba(128,128,128,0.2); }
 
 .theme-item.active {
-    border-color: var(--success-color, #4CAF50); /* 使用成功/选中色变量 */
-    background-color: color-mix(in srgb, var(--success-color, #4CAF50) 20%, transparent);
-    color: var(--main-text-color, white); 
+    border-color: var(--quote-color); 
+    background-color: color-mix(in srgb, var(--quote-color) 20%, transparent);
     font-weight: bold; 
 }
 
@@ -119,17 +116,17 @@
 }
 
 .theme-item.active.selected-for-batch {
-    box-shadow: 0 0 0 2px var(--success-color, #4CAF50);
+    box-shadow: 0 0 0 2px var(--quote-color);
 }
 
 .theme-item-name { flex-grow: 1; }
 .batch-edit-mode .theme-item-buttons { display: none; }
 
 .theme-item-buttons { display: flex; gap: 5px; }
-.theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--main-text-color, #fff); }
+.theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--main-text-color); }
 .theme-item-buttons button:hover { opacity: 1; transform: scale(1.2); }
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
-.favorite-btn.is-favorite { opacity: 1; color: var(--favorite-color, #ffeb3b); } /* 使用收藏颜色变量 */
+.favorite-btn.is-favorite { opacity: 1; color: var(--favorite-color, #ffeb3b); }
 
 .theme-item-checkbox { display: none; margin-right: 10px; }
 .batch-edit-mode .theme-item-checkbox { display: inline-block; }

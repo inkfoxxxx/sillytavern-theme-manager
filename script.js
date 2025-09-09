@@ -7,7 +7,7 @@
         const saveAsButton = document.querySelector('#ui-preset-save-button');
 
         if (originalSelect && updateButton && saveAsButton && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v17.0 Final Sync): 初始化...");
+            console.log("Theme Manager (v18.0 Final Synced): 初始化...");
             clearInterval(initInterval);
 
             try {
@@ -282,10 +282,6 @@
                     }
                 });
 
-                batchImportBtn.addEventListener('click', () => {
-                    fileInput.click();
-                });
-
                 fileInput.addEventListener('change', async (event) => {
                     const files = event.target.files;
                     if (!files.length) return;
@@ -312,12 +308,18 @@
                         }
                     }
 
-                    await reloadThemes();
-
-                    hideLoader();
-                    toastr.success(`批量导入完成！成功 ${successCount} 个，失败 ${errorCount} 个。`);
+                    // 【核心修复】引入一个短暂的延迟，给服务器喘息时间
+                    setTimeout(async () => {
+                        await reloadThemes();
+                        hideLoader();
+                        toastr.success(`批量导入完成！成功 ${successCount} 个，失败 ${errorCount} 个。`);
+                    }, 500); // 延迟半秒
                     
                     event.target.value = ''; 
+                });
+
+                batchImportBtn.addEventListener('click', () => {
+                    fileInput.click();
                 });
 
                 document.querySelector('#batch-add-tag-btn').addEventListener('click', async () => {
@@ -442,7 +444,7 @@
                 observer.observe(originalSelect, { childList: true, subtree: true, characterData: true });
 
                 buildThemeUI().then(() => {
-                    const isInitiallyCollapsed = localStorage.getItem(COLLAPSE_KEY) === 'true';
+                    const isInitiallyCollapsed = localStorage.getItem(COLLAPSE_KEY) === 'false';
                     setCollapsed(isInitiallyCollapsed, false);
                 });
 

@@ -7,7 +7,7 @@
         const saveAsButton = document.querySelector('#ui-preset-save-button');
 
         if (originalSelect && updateButton && saveAsButton && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v15.0 Visual Upgrade): 初始化...");
+            console.log("Theme Manager (v18.0 Final Star Polished): 初始化...");
             clearInterval(initInterval);
 
             try {
@@ -178,15 +178,23 @@
                                 const item = document.createElement('li');
                                 item.className = 'theme-item';
                                 item.dataset.value = theme.value;
+
+                                const isFavorited = favorites.includes(theme.value);
+                                const starIconClass = isFavorited ? 'fa-solid' : 'fa-regular';
+
                                 item.innerHTML = `
                                     <span class="theme-item-name">${theme.display}</span>
                                     <div class="theme-item-buttons">
-                                        <button class="favorite-btn" title="收藏">⭐</button>
-                                        <button class="rename-btn" title="重命名">✏️</button>
-                                        <button class="delete-btn" title="删除">🗑️</button>
+                                        <button class="favorite-btn" title="收藏">
+                                            <i class="${starIconClass} fa-star"></i>
+                                        </button>
+                                        <button class="rename-btn" title="重命名"><i class="fa-solid fa-pencil"></i></button>
+                                        <button class="delete-btn" title="删除"><i class="fa-solid fa-trash-can"></i></button>
                                     </div>`;
-                                const favBtn = item.querySelector('.favorite-btn');
-                                if (favorites.includes(theme.value)) favBtn.classList.add('is-favorite');
+                                
+                                if (isFavorited) {
+                                    item.querySelector('.favorite-btn').classList.add('is-favorite');
+                                }
                                 list.appendChild(item);
                             });
 
@@ -301,11 +309,12 @@
 
                 contentWrapper.addEventListener('click', async (event) => {
                     const target = event.target;
+                    const button = target.closest('button');
                     const themeItem = target.closest('.theme-item');
                     const categoryTitle = target.closest('.theme-category-title');
 
                     if (categoryTitle) {
-                        if (target.matches('.dissolve-folder-btn')) {
+                        if (button && button.classList.contains('dissolve-folder-btn')) {
                             event.stopPropagation();
                             const categoryName = categoryTitle.closest('.theme-category').dataset.categoryName;
                             if (!confirm(`确定要解散文件夹 "${categoryName}" 吗？`)) return;
@@ -321,10 +330,10 @@
                             }
                             hideLoader();
                             toastr.success(`文件夹 "${categoryName}" 已解散！`);
-                            return;
+                        } else {
+                            const list = categoryTitle.nextElementSibling;
+                            if (list) list.style.display = (list.style.display === 'none') ? 'block' : 'none';
                         }
-                        const list = categoryTitle.nextElementSibling;
-                        if (list) list.style.display = (list.style.display === 'none') ? 'block' : 'none';
                         return;
                     }
 
@@ -341,12 +350,23 @@
                             themeItem.classList.add('selected-for-batch');
                         }
                     } else {
-                        if (target.matches('.favorite-btn')) {
-                            favorites = favorites.includes(themeName) ? favorites.filter(f => f !== themeName) : [...favorites, themeName];
+                        if (button && button.classList.contains('favorite-btn')) {
+                            const starIcon = button.querySelector('i.fa-star');
+                            if (favorites.includes(themeName)) {
+                                favorites = favorites.filter(f => f !== themeName);
+                                starIcon.classList.remove('fa-solid');
+                                starIcon.classList.add('fa-regular');
+                                button.classList.remove('is-favorite');
+                            } else {
+                                favorites.push(themeName);
+                                starIcon.classList.remove('fa-regular');
+                                starIcon.classList.add('fa-solid');
+                                button.classList.add('is-favorite');
+                            }
                             localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
                             await buildThemeUI();
                         }
-                        else if (target.matches('.rename-btn')) {
+                        else if (button && button.classList.contains('rename-btn')) {
                             const oldName = themeName;
                             const newName = prompt(`请输入新名称：`, oldName);
                             if (newName && newName !== oldName) {
@@ -358,13 +378,13 @@
                                 manualUpdateOriginalSelect('rename', oldName, newName);
                             }
                         }
-                        else if (target.matches('.delete-btn')) {
+                        else if (button && button.classList.contains('delete-btn')) {
                             if (confirm(`确定要删除主题 "${themeItem.querySelector('.theme-item-name').textContent}" 吗？`)) {
                                 await deleteTheme(themeName);
                                 toastr.success(`主题 "${themeItem.querySelector('.theme-item-name').textContent}" 已删除！`);
                                 manualUpdateOriginalSelect('delete', themeName);
                             }
-                        } else {
+                        } else if (target.matches('.theme-item-name')) {
                             originalSelect.value = themeName;
                             originalSelect.dispatchEvent(new Event('change'));
                         }

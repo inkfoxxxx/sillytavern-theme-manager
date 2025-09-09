@@ -28,9 +28,14 @@
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
 .favorite-btn.is-favorite { opacity: 1; color: #ffeb3b; }
 
-/* 【核心修复】用 display: none 彻底隐藏，并让它在批量模式下才显示 */
-.theme-item-checkbox { display: none; margin-right: 10px; }
-.batch-edit-mode .theme-item-checkbox { display: inline-block; }
+/* 【核心修复】用 display 彻底控制复选框的显示与否 */
+.theme-item-checkbox { 
+    display: none; /* 非批量模式下，彻底消失，不占空间 */
+    margin-right: 10px; 
+}
+.batch-edit-mode .theme-item-checkbox { 
+    display: inline-block; /* 批量模式下，才显示出来 */
+}
 
 .batch-edit-mode .theme-item-buttons { display: none; }
 .theme-item.selected-for-batch { background-color: #0056b3; }

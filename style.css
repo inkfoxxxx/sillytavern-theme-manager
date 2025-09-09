@@ -28,8 +28,8 @@
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
 .favorite-btn.is-favorite { opacity: 1; color: #ffeb3b; }
 
-/* 【核心修复】回归最简单的 display: none 逻辑 */
-.theme-item-checkbox { margin-right: 10px; display: none; }
+/* 【核心修复】用 display: none 彻底隐藏，并让它在批量模式下才显示 */
+.theme-item-checkbox { display: none; margin-right: 10px; }
 .batch-edit-mode .theme-item-checkbox { display: inline-block; }
 
 .batch-edit-mode .theme-item-buttons { display: none; }

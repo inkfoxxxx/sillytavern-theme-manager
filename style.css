@@ -1,63 +1,135 @@
-/* 主题仪表盘 (v15.0 视觉升级版) 样式 */
-#theme-manager-panel { background-color: #3a3a3a; border-radius: 8px; padding: 10px; margin-top: 10px; border: 1px solid #4a4a4a; max-width: 500px; width: 100%; box-sizing: border-box; }
-#theme-manager-header { cursor: pointer; padding: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
-#theme-manager-header:hover { background-color: #454545; }
-#theme-manager-header h4 { margin: 0; border: none; padding: 0; }
-#theme-manager-toggle-icon { transition: transform 0.3s ease; }
-#theme-manager-toggle-icon.collapsed { transform: rotate(-90deg); }
-#theme-manager-content { transition: max-height 0.3s ease-in-out; overflow: hidden; }
-.theme-manager-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
-.theme-manager-actions input[type="search"] { flex-grow: 1; background-color: #2a2a2a; border: 1px solid #5a5a5a; color: #eaeaea; border-radius: 4px; padding: 5px 8px; min-width: 150px; }
-.theme-manager-actions button { background-color: #5a5a5a; color: #eaeaea; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
-.theme-manager-actions button:hover { background-color: #6a6a6a; }
-.theme-manager-actions button.selected { background-color: #007bff; }
-#batch-actions-bar { display: none; flex-wrap: wrap; gap: 8px; background-color: #454545; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
-#batch-actions-bar.visible { display: flex; }
-#batch-actions-bar button { background-color: #007bff; }
-#native-buttons-container { display: flex; gap: 5px; margin-left: auto; }
+/* 主题仪表盘 (v16.0 最终自适应主题版) 样式 */
 
-.theme-category-title { font-weight: bold; color: #66d9ef; cursor: pointer; padding: 8px 5px; background-color: #454545; border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
-.dissolve-folder-btn { background: none; border: none; color: #ff5555; cursor: pointer; font-size: 14px; opacity: 0.7; }
-.dissolve-folder-btn:hover { opacity: 1; }
+/* 【核心修改】所有颜色都从写死的值，改为了从 SillyTavern 主题变量中动态获取 */
 
-.theme-list { padding-left: 0; margin-top: 5px; }
-.theme-item { 
-    padding: 8px; 
+#theme-manager-panel { 
+    background-color: var(--panel-bg-color, #3a3a3a); /* 使用面板背景色变量 */
+    border-radius: 8px; 
+    padding: 10px; 
+    margin-top: 10px; 
+    border: 1px solid var(--border-color, #4a4a4a); /* 使用边框颜色变量 */
+    max-width: 500px; 
+    width: 100%; 
+    box-sizing: border-box; 
+}
+
+#theme-manager-header { 
+    cursor: pointer; 
+    padding: 5px; 
     border-radius: 4px; 
-    list-style: none; 
-    color: #dcdcdc; 
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    cursor: pointer; /* 默认情况下都可点击 */
-    border: 2px solid transparent; /* 为选中状态准备边框占位 */
-    transition: background-color 0.2s, border-color 0.2s;
 }
-.theme-item:hover { background-color: #5a5a5a; }
+#theme-manager-header:hover { 
+    background-color: var(--hover-bg-color, #454545); /* 使用悬停背景色变量 */
+}
 
-/* 【核心视觉升级】 */
-/* 1. 当前正在使用的主题的高亮样式 (明亮的绿色边框) */
+#theme-manager-header h4 { 
+    margin: 0; 
+    border: none; 
+    padding: 0; 
+    color: var(--main-text-color, #eaeaea); /* 使用主文字颜色变量 */
+}
+
+#theme-manager-toggle-icon { 
+    transition: transform 0.3s ease; 
+    color: var(--main-text-color, #eaeaea);
+}
+#theme-manager-toggle-icon.collapsed { transform: rotate(-90deg); }
+
+#theme-manager-content { 
+    transition: max-height 0.3s ease-in-out; 
+    overflow: hidden; 
+}
+
+.theme-manager-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
+.theme-manager-actions input[type="search"] { 
+    flex-grow: 1; 
+    background-color: var(--input-bg-color, #2a2a2a); /* 使用输入框背景色变量 */
+    border: 1px solid var(--border-color, #5a5a5a); 
+    color: var(--main-text-color, #eaeaea); 
+    border-radius: 4px; 
+    padding: 5px 8px; 
+    min-width: 150px; 
+}
+
+.theme-manager-actions button { 
+    background-color: var(--secondary-button-bg, #5a5a5a); /* 使用次要按钮背景色变量 */
+    color: var(--main-text-color, #eaeaea); 
+    border: none; 
+    padding: 5px 10px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    transition: background-color 0.2s; 
+    white-space: nowrap; 
+}
+.theme-manager-actions button:hover { 
+    background-color: var(--secondary-button-hover-bg, #6a6a6a); 
+}
+.theme-manager-actions button.selected { 
+    background-color: var(--primary-color, #007bff); /* 使用主色调变量 */
+}
+
+#batch-actions-bar { display: none; flex-wrap: wrap; gap: 8px; background-color: var(--hover-bg-color, #454545); padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+#batch-actions-bar.visible { display: flex; }
+#batch-actions-bar button { 
+    background-color: var(--primary-color, #007bff); 
+}
+
+#native-buttons-container { display: flex; gap: 5px; margin-left: auto; }
+
+.theme-category-title { 
+    font-weight: bold; 
+    color: var(--accent-color, #66d9ef); /* 使用强调色变量 */
+    cursor: pointer; 
+    padding: 8px 5px; 
+    background-color: var(--hover-bg-color, #454545); 
+    border-radius: 4px; 
+    margin-bottom: 5px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+}
+
+.dissolve-folder-btn { 
+    background: none; 
+    border: none; 
+    color: var(--danger-color, #ff5555); /* 使用危险/删除色变量 */
+    cursor: pointer; 
+    font-size: 14px; 
+    opacity: 0.7; 
+}
+.dissolve-folder-btn:hover { opacity: 1; }
+
+.theme-list { padding-left: 0; margin-top: 5px; }
+.theme-item { padding: 8px; border-radius: 4px; list-style: none; color: var(--text-color, #dcdcdc); display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 2px solid transparent; transition: background-color 0.2s, border-color 0.2s; }
+.theme-item:hover { background-color: var(--hover-bg-color, #5a5a5a); }
+
 .theme-item.active {
-    border-color: #4CAF50; 
-    background-color: #2e4c30;
+    border-color: var(--success-color, #4CAF50); /* 使用成功/选中色变量 */
+    background-color: color-mix(in srgb, var(--success-color, #4CAF50) 20%, transparent);
+    color: var(--main-text-color, white); 
+    font-weight: bold; 
 }
 
-/* 2. 在批量编辑模式下，被选中的主题的高亮样式 (明亮的蓝色背景) */
 .theme-item.selected-for-batch {
-    background-color: #0056b3;
+    background-color: var(--primary-color, #0056b3);
+    color: white;
 }
 
-/* 3. 在批量编辑模式下，当前使用的主题如果也被选中了，要有特殊区分 */
 .theme-item.active.selected-for-batch {
-    box-shadow: 0 0 0 2px #4CAF50; /* 在蓝色背景上再加一层绿色外发光 */
+    box-shadow: 0 0 0 2px var(--success-color, #4CAF50);
 }
 
 .theme-item-name { flex-grow: 1; }
-.theme-item-buttons { display: flex; gap: 5px; }
-/* 核心修复：批量模式下隐藏按钮 */
 .batch-edit-mode .theme-item-buttons { display: none; }
 
-.theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: #fff; }
+.theme-item-buttons { display: flex; gap: 5px; }
+.theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--main-text-color, #fff); }
 .theme-item-buttons button:hover { opacity: 1; transform: scale(1.2); }
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
-.favorite-btn.is-favorite { opacity: 1; color: #ffeb3b; }
+.favorite-btn.is-favorite { opacity: 1; color: var(--favorite-color, #ffeb3b); } /* 使用收藏颜色变量 */
+
+.theme-item-checkbox { display: none; margin-right: 10px; }
+.batch-edit-mode .theme-item-checkbox { display: inline-block; }

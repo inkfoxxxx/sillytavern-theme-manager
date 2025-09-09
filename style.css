@@ -1,89 +1,63 @@
-/* 主题仪表盘 (v10.0 最终完美版) 样式 */
-#theme-manager-panel {
-    background-color: #3a3a3a;
-    border-radius: 8px;
-    padding: 10px; /* 修改：内边距从 15px 减小到 10px */
-    margin-top: 10px;
-    border: 1px solid #4a4a4a;
-    /* 新增下面三行 */
-    max-width: 500px; 
-    width: 100%;
-    box-sizing: border-box;
-}
-#theme-manager-panel h4 {
-    margin: 0; /* 修改 */
-    color: #eaeaea;
-    border: none; /* 修改 */
-    padding: 0; /* 修改 */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-/* --- 新增 --- */
-#theme-manager-header {
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 4px;
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center;
-}
-#theme-manager-header:hover {
-    background-color: #454545;
-}
-.theme-manager-actions { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+/* 主题仪表盘 (v15.0 视觉升级版) 样式 */
+#theme-manager-panel { background-color: #3a3a3a; border-radius: 8px; padding: 10px; margin-top: 10px; border: 1px solid #4a4a4a; max-width: 500px; width: 100%; box-sizing: border-box; }
+#theme-manager-header { cursor: pointer; padding: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+#theme-manager-header:hover { background-color: #454545; }
+#theme-manager-header h4 { margin: 0; border: none; padding: 0; }
+#theme-manager-toggle-icon { transition: transform 0.3s ease; }
+#theme-manager-toggle-icon.collapsed { transform: rotate(-90deg); }
+#theme-manager-content { transition: max-height 0.3s ease-in-out; overflow: hidden; }
+.theme-manager-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
 .theme-manager-actions input[type="search"] { flex-grow: 1; background-color: #2a2a2a; border: 1px solid #5a5a5a; color: #eaeaea; border-radius: 4px; padding: 5px 8px; min-width: 150px; }
 .theme-manager-actions button { background-color: #5a5a5a; color: #eaeaea; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
 .theme-manager-actions button:hover { background-color: #6a6a6a; }
 .theme-manager-actions button.selected { background-color: #007bff; }
-
 #batch-actions-bar { display: none; flex-wrap: wrap; gap: 8px; background-color: #454545; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
 #batch-actions-bar.visible { display: flex; }
 #batch-actions-bar button { background-color: #007bff; }
+#native-buttons-container { display: flex; gap: 5px; margin-left: auto; }
 
 .theme-category-title { font-weight: bold; color: #66d9ef; cursor: pointer; padding: 8px 5px; background-color: #454545; border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
 .dissolve-folder-btn { background: none; border: none; color: #ff5555; cursor: pointer; font-size: 14px; opacity: 0.7; }
 .dissolve-folder-btn:hover { opacity: 1; }
 
 .theme-list { padding-left: 0; margin-top: 5px; }
-.theme-item { padding: 8px; border-radius: 4px; list-style: none; color: #dcdcdc; display: flex; justify-content: space-between; align-items: center; }
+.theme-item { 
+    padding: 8px; 
+    border-radius: 4px; 
+    list-style: none; 
+    color: #dcdcdc; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    cursor: pointer; /* 默认情况下都可点击 */
+    border: 2px solid transparent; /* 为选中状态准备边框占位 */
+    transition: background-color 0.2s, border-color 0.2s;
+}
 .theme-item:hover { background-color: #5a5a5a; }
-.theme-item.active { background-color: #007bff; color: white; font-weight: bold; }
-.theme-item-name { flex-grow: 1; }
-.batch-edit-mode .theme-item { cursor: pointer; }
 
+/* 【核心视觉升级】 */
+/* 1. 当前正在使用的主题的高亮样式 (明亮的绿色边框) */
+.theme-item.active {
+    border-color: #4CAF50; 
+    background-color: #2e4c30;
+}
+
+/* 2. 在批量编辑模式下，被选中的主题的高亮样式 (明亮的蓝色背景) */
+.theme-item.selected-for-batch {
+    background-color: #0056b3;
+}
+
+/* 3. 在批量编辑模式下，当前使用的主题如果也被选中了，要有特殊区分 */
+.theme-item.active.selected-for-batch {
+    box-shadow: 0 0 0 2px #4CAF50; /* 在蓝色背景上再加一层绿色外发光 */
+}
+
+.theme-item-name { flex-grow: 1; }
 .theme-item-buttons { display: flex; gap: 5px; }
+/* 核心修复：批量模式下隐藏按钮 */
+.batch-edit-mode .theme-item-buttons { display: none; }
+
 .theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: #fff; }
 .theme-item-buttons button:hover { opacity: 1; transform: scale(1.2); }
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
 .favorite-btn.is-favorite { opacity: 1; color: #ffeb3b; }
-
-/* 【核心修复】用 display 彻底控制复选框的显示与否 */
-.theme-item-checkbox { 
-    display: none; /* 非批量模式下，彻底消失，不占空间 */
-    margin-right: 10px; 
-}
-.batch-edit-mode .theme-item-checkbox { 
-    display: inline-block; /* 批量模式下，才显示出来 */
-}
-/* --- 新增 --- */
-#theme-manager-toggle-icon {
-    transition: transform 0.3s ease;
-}
-#theme-manager-toggle-icon.collapsed {
-    transform: rotate(-90deg);
-}
-/* --- 新增 --- */
-#theme-manager-content {
-    transition: all 0.3s ease-in-out;
-    overflow: hidden;
-}
-/* --- 新增 --- */
-#native-buttons-container {
-    display: flex;
-    gap: 5px;
-    margin-left: auto;
-}
-.batch-edit-mode .theme-item-buttons { display: none; }
-.theme-item.selected-for-batch { background-color: #0056b3; }
-

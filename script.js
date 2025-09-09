@@ -63,7 +63,7 @@
                 managerPanel.id = 'theme-manager-panel';
                 managerPanel.innerHTML = `
                     <div id="theme-manager-header">
-                        <h4>🎨 主题仪表盘</h4>
+                        <h4>🎨 主题管理</h4>
                         <div id="native-buttons-container"></div>
                         <div id="theme-manager-toggle-icon" class="fa-solid fa-chevron-down"></div>
                     </div>
@@ -174,7 +174,6 @@
                             list.className = 'theme-list';
                             list.style.display = 'block';
 
-                            // 这是新的、修复后的循环
                             themesInCategory.forEach(theme => {
                                 const item = document.createElement('li');
                                 item.className = 'theme-item';
@@ -281,15 +280,15 @@
 
                 document.querySelector('#batch-add-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
-                    const newTag = prompt('请输入要添加的新标签：');
+                    const newTag = prompt('请输入要添加的新标签（文件夹名）：');
                     if (newTag && newTag.trim()) {
                         await performBatchRename(oldName => `[${newTag.trim()}] ${oldName}`);
-                        toastr.success(`已为选中主题添加标签 "[${newTag.trim()}]"`);
+                        toastr.success(`已为选中主题添加标签（文件夹名） "[${newTag.trim()}]"`);
                     }
                 });
                 document.querySelector('#batch-move-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
-                    const targetTag = prompt('请输入要移动到的目标分类：');
+                    const targetTag = prompt('请输入要移动到的目标分类（文件夹）：');
                     if (targetTag && targetTag.trim()) {
                          await performBatchRename(oldName => `[${targetTag.trim()}] ${oldName.replace(/\[.*?\]/g, '').trim()}`);
                          toastr.success(`已将选中主题移动到分类 "[${targetTag.trim()}]"`);
@@ -297,7 +296,7 @@
                 });
                 document.querySelector('#batch-delete-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
-                    const tagToRemove = prompt('请输入要移除的标签：');
+                    const tagToRemove = prompt('请输入要移除的标签（文件夹名）（等同于将所选主题移出该文件夹）：');
                     if (tagToRemove && tagToRemove.trim()) {
                         await performBatchRename(oldName => oldName.replace(`[${tagToRemove.trim()}]`, '').trim());
                         toastr.success(`已从选中主题移除标签 "[${tagToRemove.trim()}]"`);
@@ -417,4 +416,5 @@
         }
     }, 250);
 })();
+
 

@@ -2,7 +2,8 @@
     'use strict';
 
     // 从 SillyTavern 核心上下文中，安全地获取我们需要的官方工具
-    const { getRequestHeaders, reloadThemes } = SillyTavern.getContext();
+    // 我们现在知道，getSettings 也是一个关键工具！
+    const { getRequestHeaders, reloadThemes, getSettings } = SillyTavern.getContext();
 
     const FAVORITES_KEY = 'themeManager_favorites';
 
@@ -35,10 +36,9 @@
         }
     }
 
-    async function getAllThemes() {
+    async function getAllThemesFromAPI() {
         const settings = await apiRequest('settings/get', 'POST', {});
-        // 注意：SillyTavern 的主题列表可能存在于 settings.themes，也可能在全局变量中
-        return settings.themes || (window.themes && window.themes.map(t => ({name: t}))) || [];
+        return settings.themes || [];
     }
 
     async function deleteTheme(themeName) {
@@ -64,10 +64,10 @@
                 const managerPanel = document.createElement('div');
                 managerPanel.id = 'theme-manager-panel';
                 managerPanel.innerHTML = `
-                    <h4><span>🎨 主题仪表盘 (最终胜利版)</span></h4>
+                    <h4><span>🎨主题仪表盘</span></h4>
                     <div class="theme-manager-actions">
-                        <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
-                        <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>
+                        <input type="search" id="theme-search-box" placeholder="🔍搜索主题...">
+                        <button id="random-theme-btn" title="随机应用一个主题">🎲随机</button>
                     </div>
                     <div class="theme-content"></div>
                 `;
@@ -86,7 +86,7 @@
                 async function buildThemeUI() {
                     contentWrapper.innerHTML = '正在加载主题...';
                     try {
-                        const allThemeObjects = await getAllThemes();
+                        const allThemeObjects = await getAllThemesFromAPI();
                         contentWrapper.innerHTML = '';
     
                         const allThemes = allThemeObjects.map(themeObj => {
@@ -112,10 +112,10 @@
                         });
                         
                         const allCategories = new Set(allThemes.flatMap(t => t.categories));
-                        const sortedCategories = ['⭐ 收藏夹', ...Array.from(allCategories).sort((a, b) => a.localeCompare(b, 'zh-CN'))];
+                        const sortedCategories = ['⭐收藏夹', ...Array.from(allCategories).sort((a, b) => a.localeCompare(b, 'zh-CN'))];
     
                         sortedCategories.forEach(category => {
-                            const themesInCategory = (category === '⭐ 收藏夹')
+                            const themesInCategory = (category === '⭐收藏夹')
                                 ? allThemes.filter(theme => favorites.includes(theme.value))
                                 : allThemes.filter(theme => theme.categories.includes(category));
     
@@ -182,9 +182,10 @@
                                             await deleteTheme(theme.value);
                                             toastr.success(`主题已重命名为 "${newName}"！`);
                                             
-                                            // 【核心修复！】发出“刷新通知”
-                                            await reloadThemes(); 
-                                            await buildThemeUI();
+                                            // 【核心修复！】发出“双重通知”
+                                            await getSettings(); // 1. 通知“总管家”更新花名册
+                                            await reloadThemes(); // 2. 通知“下拉菜单”也更新
+                                            await buildThemeUI(); // 3. 最后，刷新我们自己的UI
                                         } catch (err) {}
                                     }
                                 });
@@ -196,7 +197,8 @@
                                             await deleteTheme(theme.value);
                                             toastr.success(`主题 "${theme.display}" 已删除！`);
                                             
-                                            // 【核心修复！】发出“刷新通知”
+                                            // 【核心修复！】发出“双重通知”
+                                            await getSettings();
                                             await reloadThemes();
                                             await buildThemeUI();
                                         } catch (err) {}
@@ -231,7 +233,7 @@
                 });
 
                 randomBtn.addEventListener('click', async () => {
-                    const themes = await getAllThemes();
+                    const themes = await getAllThemesFromAPI();
                     if (themes.length > 0) {
                         const randomIndex = Math.floor(Math.random() * themes.length);
                         originalSelect.value = themes[randomIndex].name;

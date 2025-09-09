@@ -1,4 +1,4 @@
-/* 主题仪表盘 (v8.0 最终完美版) 样式 */
+/* 主题仪表盘 (v10.0 最终完美版) 样式 */
 #theme-manager-panel { background-color: #3a3a3a; border-radius: 8px; padding: 15px; margin-top: 10px; border: 1px solid #4a4a4a; }
 #theme-manager-panel h4 { margin-top: 0; color: #eaeaea; border-bottom: 1px solid #5a5a5a; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 .theme-manager-actions { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
@@ -28,7 +28,7 @@
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
 .favorite-btn.is-favorite { opacity: 1; color: #ffeb3b; }
 
-/* 【核心修复】使用 display: none 彻底隐藏复选框，解决布局问题 */
+/* 【核心修复】回归最简单的 display: none 逻辑 */
 .theme-item-checkbox { margin-right: 10px; display: none; }
 .batch-edit-mode .theme-item-checkbox { display: inline-block; }
 

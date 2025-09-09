@@ -1,62 +1,44 @@
 (function () {
     'use strict';
 
-    // 【核心、最终、决定性的修改！】
-    // 我们不再依赖任何外部模块，而是直接从 SillyTavern 的核心上下文获取工具
-    const { getRequestHeaders } = SillyTavern.getContext();
+    // 从 SillyTavern 核心上下文中，安全地获取我们需要的官方工具
+    const { getRequestHeaders, reloadThemes } = SillyTavern.getContext();
 
     const FAVORITES_KEY = 'themeManager_favorites';
 
-    // --- 后续所有代码都保持不变，因为它们现在能拿到正确的工具了 ---
-
-// 【全新的、更宽容的 API 请求函数】
-async function apiRequest(endpoint, method = 'POST', body = {}) {
-    try {
-        const headers = SillyTavern.getContext().getRequestHeaders();
-        
-        const options = {
-            method: method,
-            headers: headers,
-        };
-
-        if (method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD') {
-            options.body = JSON.stringify(body);
-        }
-
-        const response = await fetch(`/api/${endpoint}`, options);
-        const responseText = await response.text(); // 首先，以纯文本形式获取回复
-
-        if (!response.ok) {
-            // 如果服务器返回错误状态，我们尝试解析JSON，因为错误信息通常是JSON格式
-            try {
-                const errorData = JSON.parse(responseText);
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-            } catch (e) {
-                // 如果错误信息也不是JSON，就直接显示文本
-                throw new Error(responseText || `HTTP error! status: ${response.status}`);
+    // 之前修复过的、更宽容的 API 请求函数
+    async function apiRequest(endpoint, method = 'POST', body = {}) {
+        try {
+            const headers = getRequestHeaders();
+            const options = { method, headers };
+            if (method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD') {
+                options.body = JSON.stringify(body);
             }
+            const response = await fetch(`/api/${endpoint}`, options);
+            const responseText = await response.text();
+            if (!response.ok) {
+                try {
+                    const errorData = JSON.parse(responseText);
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                } catch (e) {
+                    throw new Error(responseText || `HTTP error! status: ${response.status}`);
+                }
+            }
+            if (responseText.trim().toUpperCase() === 'OK') {
+                return { status: 'OK' };
+            }
+            return responseText ? JSON.parse(responseText) : {};
+        } catch (error) {
+            console.error(`API request to /api/${endpoint} failed:`, error);
+            toastr.error(`API请求失败: ${error.message}`);
+            throw error;
         }
-
-        // 如果服务器返回成功状态 (OK)
-        // 检查回复是不是简单的 "OK"
-        if (responseText.trim().toUpperCase() === 'OK') {
-            return { status: 'OK' }; // 如果是，我们就手动伪造一个成功的JSON对象
-        }
-
-        // 如果回复不是 "OK"，那么我们再尝试按正常的JSON来解析它
-        return responseText ? JSON.parse(responseText) : {};
-
-    } catch (error) {
-        console.error(`API request to /api/${endpoint} failed:`, error);
-        // 这里的报错信息会更精确
-        toastr.error(`API请求失败: ${error.message}`);
-        throw error;
     }
-}
 
     async function getAllThemes() {
         const settings = await apiRequest('settings/get', 'POST', {});
-        return settings.themes || [];
+        // 注意：SillyTavern 的主题列表可能存在于 settings.themes，也可能在全局变量中
+        return settings.themes || (window.themes && window.themes.map(t => ({name: t}))) || [];
     }
 
     async function deleteTheme(themeName) {
@@ -107,10 +89,7 @@ async function apiRequest(endpoint, method = 'POST', body = {}) {
                         const allThemeObjects = await getAllThemes();
                         contentWrapper.innerHTML = '';
     
-                        const allThemes = [];
-                        const allCategories = new Set();
-    
-                        allThemeObjects.forEach(themeObj => {
+                        const allThemes = allThemeObjects.map(themeObj => {
                             const themeName = themeObj.name;
                             let displayName = themeName;
                             const categories = [];
@@ -121,19 +100,18 @@ async function apiRequest(endpoint, method = 'POST', body = {}) {
                                 const tag = match[1].trim();
                                 if (tag) {
                                     categories.push(tag);
-                                    allCategories.add(tag);
                                 }
                             }
                             
                             displayName = themeName.replace(tagRegex, '').trim();
                             if (categories.length === 0) {
                                 categories.push('未分类');
-                                allCategories.add('未分类');
                             }
                             
-                            allThemes.push({ value: themeName, display: displayName, categories: categories });
+                            return { value: themeName, display: displayName, categories: categories };
                         });
                         
+                        const allCategories = new Set(allThemes.flatMap(t => t.categories));
                         const sortedCategories = ['⭐ 收藏夹', ...Array.from(allCategories).sort((a, b) => a.localeCompare(b, 'zh-CN'))];
     
                         sortedCategories.forEach(category => {
@@ -202,8 +180,11 @@ async function apiRequest(endpoint, method = 'POST', body = {}) {
                                             const newThemeObject = { ...themeObject, name: newName };
                                             await saveTheme(newThemeObject);
                                             await deleteTheme(theme.value);
-                                            toastr.success(`主题已重命名为 "${newName}"！正在刷新列表...`);
-                                            buildThemeUI();
+                                            toastr.success(`主题已重命名为 "${newName}"！`);
+                                            
+                                            // 【核心修复！】发出“刷新通知”
+                                            await reloadThemes(); 
+                                            await buildThemeUI();
                                         } catch (err) {}
                                     }
                                 });
@@ -213,8 +194,11 @@ async function apiRequest(endpoint, method = 'POST', body = {}) {
                                     if (confirm(`确定要删除主题 "${theme.display}" 吗？此操作无法撤销。`)) {
                                         try {
                                             await deleteTheme(theme.value);
-                                            toastr.success(`主题 "${theme.display}" 已删除！正在刷新列表...`);
-                                            buildThemeUI();
+                                            toastr.success(`主题 "${theme.display}" 已删除！`);
+                                            
+                                            // 【核心修复！】发出“刷新通知”
+                                            await reloadThemes();
+                                            await buildThemeUI();
                                         } catch (err) {}
                                     }
                                 });
@@ -228,7 +212,7 @@ async function apiRequest(endpoint, method = 'POST', body = {}) {
                         });
                         updateActiveState();
                     } catch (err) {
-                        contentWrapper.innerHTML = '加载主题失败，请检查控制台获取更多信息。';
+                        contentWrapper.innerHTML = '加载主题失败，请检查浏览器控制台获取更多信息。';
                     }
                 }
 
@@ -266,4 +250,3 @@ async function apiRequest(endpoint, method = 'POST', body = {}) {
     }, 250);
 
 })();
-

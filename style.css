@@ -1,202 +1,56 @@
-/* 主题仪表盘 (v17.0 最终官方变量版) 样式 */
+/* 主题仪表盘 (v17.0 最终布局突破版) 样式 */
 
-/* 【核心修复】所有颜色都替换为 SillyTavern 官方最可能使用的 CSS 变量 */
-
-#theme-manager-panel { 
-    background-color: var(--blur-tint-color); /* 使用官方“UI背景”变量 */
-    border-radius: 8px; 
-    padding: 10px; 
-    margin-top: 10px; 
-    border: 1px solid var(--border-color); /* 使用官方“UI边框”变量 */
-    max-width: 500px; 
-    width: 100%; 
-    box-sizing: border-box; 
-}
-
-#theme-manager-header { 
-    cursor: pointer; 
-    padding: 5px; 
-    border-radius: 4px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-}
-#theme-manager-header:hover { 
-    background-color: rgba(0,0,0,0.1); /* 使用一个通用的半透明黑色作为悬停效果 */
-}
-
-#theme-manager-header h4 { 
-    margin: 0; 
-    border: none; 
-    padding: 0; 
-    color: var(--main-text-color); /* 使用官方“主要文本”变量 */
-}
-
-#theme-manager-toggle-icon { 
-    transition: transform 0.3s ease; 
-    color: var(--main-text-color);
-}
+#theme-manager-panel { background-color: var(--blur-tint-color); border-radius: 8px; padding: 10px; margin-top: 10px; border: 1px solid var(--border-color); max-width: 500px; width: 100%; box-sizing: border-box; }
+#theme-manager-header { cursor: pointer; padding: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+#theme-manager-header:hover { background-color: rgba(0,0,0,0.1); }
+#theme-manager-header h4 { margin: 0; border: none; padding: 0; color: var(--main-text-color); }
+#theme-manager-toggle-icon { transition: transform 0.3s ease; color: var(--main-text-color); }
 #theme-manager-toggle-icon.collapsed { transform: rotate(-90deg); }
-
-#theme-manager-content { 
-    transition: max-height 0.3s ease-in-out; 
-    overflow: hidden; 
-}
-
+#theme-manager-content { transition: max-height 0.3s ease-in-out; overflow: hidden; }
 .theme-manager-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
-.theme-manager-actions input[type="search"] { 
-    flex-grow: 1; 
-    background-color: rgba(0,0,0,0.2); 
-    border: 1px solid var(--border-color); 
-    color: var(--main-text-color); 
-    border-radius: 4px; 
-    padding: 5px 8px; 
-    min-width: 150px; 
-}
-
-.theme-manager-actions button, #batch-actions-bar button { 
-    background-color: rgba(128,128,128,0.2); 
-    color: var(--main-text-color); 
-    border: 1px solid var(--border-color); 
-    padding: 5px 10px; 
-    border-radius: 4px; 
-    cursor: pointer; 
-    transition: background-color 0.2s; 
-    white-space: nowrap; 
-}
-.theme-manager-actions button:hover, #batch-actions-bar button:hover { 
-    background-color: rgba(128,128,128,0.4); 
-}
-.theme-manager-actions button.selected, #batch-actions-bar button { 
-    background-color: var(--primary-color, #007bff); /* 主色调，通常用于按钮 */
-    color: white;
-    border-color: transparent;
-}
-
+.theme-manager-actions input[type="search"] { flex-grow: 1; background-color: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: var(--main-text-color); border-radius: 4px; padding: 5px 8px; min-width: 150px; }
+.theme-manager-actions button, #batch-actions-bar button { background-color: rgba(128,128,128,0.2); color: var(--main-text-color); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
+.theme-manager-actions button:hover, #batch-actions-bar button:hover { background-color: rgba(128,128,128,0.4); }
+.theme-manager-actions button.selected, #batch-actions-bar button { background-color: var(--primary-color, #007bff); color: white; border-color: transparent; }
 #batch-actions-bar { display: none; flex-wrap: wrap; gap: 8px; background-color: transparent; padding: 0; border-radius: 4px; margin-bottom: 10px; }
 #batch-actions-bar.visible { display: flex; }
-
 #native-buttons-container { display: flex; gap: 5px; margin-left: auto; }
-
-.theme-category-title { 
-    font-weight: bold; 
-    color: var(--quote-color); /* 使用官方“引用文本”颜色作为强调色 */
-    cursor: pointer; 
-    padding: 8px 5px; 
-    background-color: rgba(0,0,0,0.15); 
-    border-radius: 4px; 
-    margin-bottom: 5px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-}
-
-.dissolve-folder-btn { 
-    background: none; 
-    border: none; 
-    color: var(--danger-color, #ff5555); 
-    cursor: pointer; 
-    font-size: 14px; 
-    opacity: 0.7; 
-}
-
+.theme-category-title { font-weight: bold; color: var(--quote-color); cursor: pointer; padding: 8px 5px; background-color: rgba(0,0,0,0.15); border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+.dissolve-folder-btn { background: none; border: none; color: var(--danger-color, #ff5555); cursor: pointer; font-size: 14px; opacity: 0.7; }
 .theme-list { padding-left: 0; margin-top: 5px; }
 .theme-item { padding: 8px; border-radius: 4px; list-style: none; color: var(--main-text-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 2px solid transparent; transition: background-color 0.2s, border-color 0.2s; }
 .theme-item:hover { background-color: rgba(128,128,128,0.2); }
-
-.theme-item.active {
-    border-color: var(--quote-color); 
-    background-color: color-mix(in srgb, var(--quote-color) 20%, transparent);
-    font-weight: bold; 
-}
-
-.theme-item.selected-for-batch {
-    background-color: var(--primary-color, #0056b3);
-    color: white;
-}
-
-.theme-item.active.selected-for-batch {
-    box-shadow: 0 0 0 2px var(--quote-color);
-}
-
+.theme-item.active { border-color: var(--quote-color); background-color: color-mix(in srgb, var(--quote-color) 20%, transparent); font-weight: bold; }
+.theme-item.selected-for-batch { background-color: var(--primary-color, #0056b3); color: white; }
+.theme-item.active.selected-for-batch { box-shadow: 0 0 0 2px var(--quote-color); }
 .theme-item-name { flex-grow: 1; }
 .batch-edit-mode .theme-item-buttons { display: none; }
-
 .theme-item-buttons { display: flex; gap: 5px; }
 .theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--main-text-color); }
 .theme-item-buttons button:hover { opacity: 1; transform: scale(1.2); }
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
-/* 【核心修改】 */
-/* 1. 为所有收藏按钮（无论空心实心）设置一个基础颜色 */
-.favorite-btn {
-    color: var(--favorite-color, #ffeb3b);
-}
-
-/* 2. 只有被收藏的，才显示为实心星星 */
-.favorite-btn.is-favorite { 
-    opacity: 1; 
-}
-
+.favorite-btn.is-favorite { opacity: 1; }
 .theme-item-checkbox { display: none; margin-right: 10px; }
 .batch-edit-mode .theme-item-checkbox { display: inline-block; }
 
 /* =================================== */
 /* == 移动端响应式设计 (手机版样式) == */
 /* =================================== */
-
-/* 当屏幕宽度小于等于 768px 时，应用以下规则 */
 @media (max-width: 768px) {
-
-    /* 1. 让主操作按钮更紧凑，允许换行 */
-    .theme-manager-actions {
-        flex-direction: column; /* 改为垂直排列 */
-        align-items: stretch; /* 让按钮宽度撑满 */
+    #theme-manager-panel {
+        width: 100%;
+        max-width: none;
     }
-
-    /* 2. 【核心修改】为主题项本身启用智能换行 */
     .theme-item {
-        padding: 8px; /* 稍微增加内边距，让换行后不显得拥挤 */
-        flex-wrap: wrap; /* 允许内部元素（名字和按钮）换行 */
+        flex-wrap: wrap; 
+        padding: 8px;
     }
-
-    /* 3. 【核心新增】让主题名称可以正常显示，不再被截断 */
     .theme-item-name {
-        flex-grow: 1;    /* 允许它占据尽可能多的空间 */
-        min-width: 150px; /* 给名字一个最小宽度，避免被按钮挤得太窄 */
-        padding-right: 10px; /* 在名字和按钮之间留出一点空隙 */
-        /* 我们不再需要 white-space, overflow, text-overflow 这些规则了 */
+        flex-grow: 1;
+        min-width: 100px;
+        padding-right: 10px;
     }
-
-    /* 4. 【核心新增】让按钮组在换行后能自动对齐到右边 */
     .theme-item-buttons {
-        flex-shrink: 0; /* 不允许按钮组被压缩 */
-        margin-left: auto; /* 当换行发生时，这个规则会自动把按钮推到最右边 */
-    }
-
-    /* 5. 缩小操作按钮的图标，并增大点击区域 (保留并优化) */
-    .theme-item-buttons button {
-        font-size: 18px; /* 稍微增大图标尺寸，方便点击 */
-        padding: 4px;
-    }
-
-    /* 6. 缩小文件夹标题的字体，并让“解散”按钮更紧凑 (保留) */
-    .theme-category-title {
-        padding: 6px 5px;
-        font-size: 0.9em; /* 稍微缩小字体 */
-    }
-
-    .dissolve-folder-btn {
-        font-size: 12px;
-        padding: 0 4px;
-    }
-
-    /* 7. 让原生按钮在手机上更紧凑 (保留) */
-    #native-buttons-container .menu_button {
-        padding: 5px;
-    }
-
-    #native-buttons-container .menu_button i {
-        font-size: 1em;
+        flex-shrink: 0;
     }
 }
-

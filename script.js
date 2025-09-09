@@ -216,28 +216,33 @@
                     managerPanel.querySelectorAll('.selected-for-batch').forEach(item => item.classList.remove('selected-for-batch'));
                 });
 
+
                 document.querySelector('#batch-add-tag-btn').addEventListener('click', async () => {
+                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; } // 把检查移到最前面
                     const newTag = prompt('请输入要添加的新标签：');
                     if (newTag && newTag.trim()) {
                         await performBatchRename(oldName => `[${newTag.trim()}] ${oldName}`);
                         toastr.success(`已为选中主题添加标签 "[${newTag.trim()}]"`);
                     }
                 });
+
                 document.querySelector('#batch-move-tag-btn').addEventListener('click', async () => {
+                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; } // 把检查移到最前面
                     const targetTag = prompt('请输入要移动到的目标分类：');
                     if (targetTag && targetTag.trim()) {
                         await performBatchRename(oldName => `[${targetTag.trim()}] ${oldName.replace(/\[.*?\]/g, '').trim()}`);
                         toastr.success(`已将选中主题移动到分类 "[${targetTag.trim()}]"`);
                     }
-                });
+               });
+
                 document.querySelector('#batch-delete-tag-btn').addEventListener('click', async () => {
+                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; } // 把检查移到最前面
                     const tagToRemove = prompt('请输入要移除的标签：');
                     if (tagToRemove && tagToRemove.trim()) {
                         await performBatchRename(oldName => oldName.replace(`[${tagToRemove.trim()}]`, '').trim());
                         toastr.success(`已从选中主题移除标签 "[${tagToRemove.trim()}]"`);
                     }
-
-                });
+               });
                 document.querySelector('#batch-delete-btn').addEventListener('click', performBatchDelete);
 
                 contentWrapper.addEventListener('click', async (event) => {
@@ -340,3 +345,4 @@
         }
     }, 250);
 })();
+

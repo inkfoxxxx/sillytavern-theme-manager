@@ -5,11 +5,11 @@
         const originalSelect = document.querySelector('#themes');
 
         if (originalSelect && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v11.0 Final Perfected): 初始化...");
+            console.log("Theme Manager (v12.0 Final Perfected): 初始化...");
             clearInterval(initInterval);
 
             try {
-                const { getRequestHeaders } = SillyTavern.getContext();
+                const { getRequestHeaders, showLoader, hideLoader } = SillyTavern.getContext();
                 const FAVORITES_KEY = 'themeManager_favorites';
 
                 async function apiRequest(endpoint, method = 'POST', body = {}) {
@@ -33,18 +33,15 @@
                         throw error;
                     }
                 }
-
                 async function getAllThemesFromAPI() { return (await apiRequest('settings/get', 'POST', {})).themes || []; }
                 async function deleteTheme(themeName) { await apiRequest('themes/delete', 'POST', { name: themeName }); }
                 async function saveTheme(themeObject) { await apiRequest('themes/save', 'POST', themeObject); }
-
                 function manualUpdateOriginalSelect(action, oldName, newName) {
                     const originalSelect = document.querySelector('#themes');
                     if (!originalSelect) return;
                     if (action === 'add') {
                         const option = document.createElement('option');
-                        option.value = newName;
-                        option.textContent = newName;
+                        option.value = newName; option.textContent = newName;
                         originalSelect.appendChild(option);
                     } else if (action === 'delete') {
                         const optionToDelete = originalSelect.querySelector(`option[value="${oldName}"]`);
@@ -229,8 +226,8 @@
                 document.querySelector('#batch-move-tag-btn').addEventListener('click', async () => {
                     const targetTag = prompt('请输入要移动到的目标分类：');
                     if (targetTag && targetTag.trim()) {
-                         await performBatchRename(oldName => `[${targetTag.trim()}] ${oldName.replace(/\[.*?\]/g, '').trim()}`);
-                         toastr.success(`已将选中主题移动到分类 "[${targetTag.trim()}]"`);
+                        await performBatchRename(oldName => `[${targetTag.trim()}] ${oldName.replace(/\[.*?\]/g, '').trim()}`);
+                        toastr.success(`已将选中主题移动到分类 "[${targetTag.trim()}]"`);
                     }
                 });
                 document.querySelector('#batch-delete-tag-btn').addEventListener('click', async () => {
@@ -239,6 +236,7 @@
                         await performBatchRename(oldName => oldName.replace(`[${tagToRemove.trim()}]`, '').trim());
                         toastr.success(`已从选中主题移除标签 "[${tagToRemove.trim()}]"`);
                     }
+
                 });
                 document.querySelector('#batch-delete-btn').addEventListener('click', performBatchDelete);
 
@@ -286,6 +284,7 @@
                             const categoryName = target.closest('.theme-category').dataset.categoryName;
                             if (!confirm(`确定要解散文件夹 "${categoryName}" 吗？`)) return;
                             const themesToUpdate = Array.from(originalSelect.options).map(opt => opt.value).filter(name => name.includes(`[${categoryName}]`));
+                            showLoader();
                             for (const oldName of themesToUpdate) {
                                 const themeObject = allThemeObjects.find(t => t.name === oldName);
                                 if (!themeObject) continue;
@@ -294,6 +293,7 @@
                                 await deleteTheme(oldName);
                                 manualUpdateOriginalSelect('rename', oldName, newName);
                             }
+                            hideLoader();
                             toastr.success(`文件夹 "${categoryName}" 已解散！`);
                         }
                         else if (categoryTitle) {

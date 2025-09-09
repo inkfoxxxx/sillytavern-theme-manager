@@ -43,17 +43,19 @@
 /* =================================== */
 @media (max-width: 768px) {
     #theme-manager-panel {
-        width: 200%;
+        width: 100%;
         max-width: none;
     }
      .theme-item {
         flex-wrap: wrap; /* 只在移动端，才允许智能换行 */
+        width: 100%;
     }
 
     .theme-item-name {
         white-space: normal; /* 恢复正常的文本换行能力 */
         overflow: visible;
         text-overflow: clip;
+        width: 100%;
         min-width: 150px;
     }
 
@@ -61,5 +63,6 @@
         margin-left: auto; /* 当换行时，自动靠右 */
     }
 }
+
 
 

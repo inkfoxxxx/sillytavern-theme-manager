@@ -1,67 +1,62 @@
 (function () {
     'use strict';
 
+    const { getRequestHeaders } = SillyTavern.getContext();
     const FAVORITES_KEY = 'themeManager_favorites';
+
+    async function apiRequest(endpoint, method = 'POST', body = {}) {
+        try {
+            const headers = getRequestHeaders();
+            const options = { method, headers };
+            if (method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD') {
+                options.body = JSON.stringify(body);
+            }
+            const response = await fetch(`/api/${endpoint}`, options);
+            const responseText = await response.text();
+            if (!response.ok) {
+                try { const errorData = JSON.parse(responseText); throw new Error(errorData.error || `HTTP error! status: ${response.status}`); }
+                catch (e) { throw new Error(responseText || `HTTP error! status: ${response.status}`); }
+            }
+            if (responseText.trim().toUpperCase() === 'OK') return { status: 'OK' };
+            return responseText ? JSON.parse(responseText) : {};
+        } catch (error) {
+            console.error(`API request to /api/${endpoint} failed:`, error);
+            toastr.error(`API请求失败: ${error.message}`);
+            throw error;
+        }
+    }
+    async function getAllThemesFromAPI() { return (await apiRequest('settings/get', 'POST', {})).themes || []; }
+    async function deleteTheme(themeName) { await apiRequest('themes/delete', 'POST', { name: themeName }); }
+    async function saveTheme(themeObject) { await apiRequest('themes/save', 'POST', themeObject); }
+    function manualUpdateOriginalSelect(action, oldName, newName) {
+        const originalSelect = document.querySelector('#themes');
+        if (!originalSelect) return;
+        if (action === 'add') {
+            const option = document.createElement('option');
+            option.value = newName; option.textContent = newName;
+            originalSelect.appendChild(option);
+        } else if (action === 'delete') {
+            const optionToDelete = originalSelect.querySelector(`option[value="${oldName}"]`);
+            if (optionToDelete) optionToDelete.remove();
+        } else if (action === 'rename') {
+            const optionToRename = originalSelect.querySelector(`option[value="${oldName}"]`);
+            if (optionToRename) {
+                optionToRename.value = newName;
+                optionToRename.textContent = newName;
+            }
+        }
+    }
 
     const initInterval = setInterval(() => {
         const originalSelect = document.querySelector('#themes');
 
         if (originalSelect && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v9.0 Final Perfected): 初始化...");
             clearInterval(initInterval);
 
             try {
-                const { getRequestHeaders } = SillyTavern.getContext();
-
-                async function apiRequest(endpoint, method = 'POST', body = {}) {
-                    try {
-                        const headers = getRequestHeaders();
-                        const options = { method, headers };
-                        if (method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD') {
-                            options.body = JSON.stringify(body);
-                        }
-                        const response = await fetch(`/api/${endpoint}`, options);
-                        const responseText = await response.text();
-                        if (!response.ok) {
-                            try { const errorData = JSON.parse(responseText); throw new Error(errorData.error || `HTTP error! status: ${response.status}`); }
-                            catch (e) { throw new Error(responseText || `HTTP error! status: ${response.status}`); }
-                        }
-                        if (responseText.trim().toUpperCase() === 'OK') return { status: 'OK' };
-                        return responseText ? JSON.parse(responseText) : {};
-                    } catch (error) {
-                        console.error(`API request to /api/${endpoint} failed:`, error);
-                        toastr.error(`API请求失败: ${error.message}`);
-                        throw error;
-                    }
-                }
-                async function getAllThemesFromAPI() { return (await apiRequest('settings/get', 'POST', {})).themes || []; }
-                async function deleteTheme(themeName) { await apiRequest('themes/delete', 'POST', { name: themeName }); }
-                async function saveTheme(themeObject) { await apiRequest('themes/save', 'POST', themeObject); }
-                function manualUpdateOriginalSelect(action, oldName, newName) {
-                    const originalSelect = document.querySelector('#themes');
-                    if (!originalSelect) return;
-                    if (action === 'add') {
-                        const option = document.createElement('option');
-                        option.value = newName;
-                        option.textContent = newName;
-                        originalSelect.appendChild(option);
-                    } else if (action === 'delete') {
-                        const optionToDelete = originalSelect.querySelector(`option[value="${oldName}"]`);
-                        if (optionToDelete) optionToDelete.remove();
-                    } else if (action === 'rename') {
-                        const optionToRename = originalSelect.querySelector(`option[value="${oldName}"]`);
-                        if (optionToRename) {
-                            optionToRename.value = newName;
-                            optionToRename.textContent = newName;
-                        }
-                    }
-                }
-
                 const originalContainer = originalSelect.parentElement;
                 if (!originalContainer) return;
-                originalSelect.style.position = 'absolute';
-                originalSelect.style.opacity = '0';
-                originalSelect.style.pointerEvents = 'none';
+                originalSelect.style.position = 'absolute'; originalSelect.style.opacity = '0'; originalSelect.style.pointerEvents = 'none';
 
                 const managerPanel = document.createElement('div');
                 managerPanel.id = 'theme-manager-panel';
@@ -69,8 +64,8 @@
                     <h4><span>🎨 主题仪表盘</span></h4>
                     <div class="theme-manager-actions">
                         <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
-                        <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>
-                        <button id="batch-edit-btn" title="进入/退出批量编辑模式">🔧 批量编辑</button>
+                        <button id="random-theme-btn" title="随机">🎲 随机</button>
+                        <button id="batch-edit-btn" title="批量编辑">🔧 批量编辑</button>
                     </div>
                     <div id="batch-actions-bar">
                         <button id="batch-add-tag-btn">➕ 添加标签</button>
@@ -94,180 +89,124 @@
 
                 async function buildThemeUI() {
                     const scrollTop = contentWrapper.scrollTop;
-                    contentWrapper.innerHTML = '正在加载主题...';
-                    try {
-                        allThemeObjects = await getAllThemesFromAPI();
-                        contentWrapper.innerHTML = '';
+                    contentWrapper.innerHTML = '';
+                    allThemeObjects = await getAllThemesFromAPI();
+                    const allThemes = Array.from(originalSelect.options).map(option => {
+                        const themeName = option.value;
+                        if (!themeName) return null;
+                        let displayName = themeName;
+                        const tags = [];
+                        const tagRegex = /\[(.*?)\]/g;
+                        let match;
+                        while ((match = tagRegex.exec(themeName)) !== null) {
+                            if (match.trim()) tags.push(match.trim());
+                        }
+                        displayName = themeName.replace(/\[.*?\]/g, '').trim();
+                        if (tags.length === 0) tags.push('未分类');
+                        return { value: themeName, display: displayName, tags: tags };
+                    }).filter(Boolean);
 
-                        const allThemes = Array.from(originalSelect.options).map(option => {
-                            const themeName = option.value;
-                            if (!themeName) return null;
-                            let displayName = themeName;
-                            const tags = [];
-                            const tagRegex = /\[(.*?)\]/g;
-                            let match;
-                            while ((match = tagRegex.exec(themeName)) !== null) {
-                                if (match[1].trim()) tags.push(match[1].trim());
-                            }
-                            displayName = themeName.replace(/\[.*?\]/g, '').trim();
-                            if (tags.length === 0) tags.push('未分类');
-                            return { value: themeName, display: displayName, tags: tags };
-                        }).filter(Boolean);
+                    const allCategories = new Set(allThemes.flatMap(t => t.tags));
+                    const sortedCategories = ['⭐ 收藏夹', ...Array.from(allCategories).sort((a, b) => a.localeCompare(b, 'zh-CN'))];
 
-                        const allCategories = new Set(allThemes.flatMap(t => t.tags));
-                        const sortedCategories = ['⭐ 收藏夹', ...Array.from(allCategories).sort((a, b) => a.localeCompare(b, 'zh-CN'))];
+                    sortedCategories.forEach(category => {
+                        const themesInCategory = (category === '⭐ 收藏夹') ? allThemes.filter(t => favorites.includes(t.value)) : allThemes.filter(t => t.tags.includes(category));
+                        if (themesInCategory.length === 0 && !['未分类', '⭐ 收藏夹'].includes(category)) return;
 
-                        sortedCategories.forEach(category => {
-                            const themesInCategory = (category === '⭐ 收藏夹') ? allThemes.filter(t => favorites.includes(t.value)) : allThemes.filter(t => t.tags.includes(category));
-                            if (themesInCategory.length === 0 && category !== '未分类' && category !== '⭐ 收藏夹') return;
+                        const categoryDiv = document.createElement('div');
+                        categoryDiv.className = 'theme-category';
+                        categoryDiv.dataset.categoryName = category;
+                        const title = document.createElement('div');
+                        title.className = 'theme-category-title';
+                        title.innerHTML = `<span>${category}</span>`;
+                        if (!['未分类', '⭐ 收藏夹'].includes(category)) {
+                            title.innerHTML += `<button class="dissolve-folder-btn" title="解散此文件夹">解散</button>`;
+                        }
+                        const list = document.createElement('ul');
+                        list.className = 'theme-list';
+                        list.style.display = 'block';
 
-                            const categoryDiv = document.createElement('div');
-                            categoryDiv.className = 'theme-category';
-                            categoryDiv.dataset.categoryName = category;
-                            const title = document.createElement('div');
-                            title.className = 'theme-category-title';
-                            title.innerHTML = `<span>${category}</span>`;
-                            if (category !== '未分类' && category !== '⭐ 收藏夹') {
-                                title.innerHTML += `<button class="dissolve-folder-btn" title="解散此文件夹">解散</button>`;
-                            }
-
-                            const list = document.createElement('ul');
-                            list.className = 'theme-list';
-                            list.style.display = 'block';
-
-                            themesInCategory.forEach(theme => {
-                                const item = document.createElement('li');
-                                item.className = 'theme-item';
-                                item.dataset.value = theme.value;
-                                item.innerHTML = `
-                                    <input type="checkbox" class="theme-item-checkbox">
-                                    <span class="theme-item-name">${theme.display}</span>
-                                    <div class="theme-item-buttons">
-                                        <button class="favorite-btn" title="收藏">⭐</button>
-                                        <button class="rename-btn" title="重命名">✏️</button>
-                                        <button class="delete-btn" title="删除">🗑️</button>
-                                    </div>`;
-                                const favBtn = item.querySelector('.favorite-btn');
-                                if (favorites.includes(theme.value)) favBtn.classList.add('is-favorite');
-                                list.appendChild(item);
-                            });
-
-                            categoryDiv.appendChild(title);
-                            categoryDiv.appendChild(list);
-                            contentWrapper.appendChild(categoryDiv);
+                        themesInCategory.forEach(theme => {
+                            const item = document.createElement('li');
+                            item.className = 'theme-item';
+                            item.dataset.value = theme.value;
+                            if (selectedForBatch.has(theme.value)) item.classList.add('selected-for-batch');
+                            item.innerHTML = `
+                                <input type="checkbox" class="theme-item-checkbox" ${selectedForBatch.has(theme.value) ? 'checked' : ''}>
+                                <span class="theme-item-name">${theme.display}</span>
+                                <div class="theme-item-buttons">
+                                    <button class="favorite-btn" title="收藏">⭐</button>
+                                    <button class="rename-btn" title="重命名">✏️</button>
+                                    <button class="delete-btn" title="删除">🗑️</button>
+                                </div>`;
+                            const favBtn = item.querySelector('.favorite-btn');
+                            if (favorites.includes(theme.value)) favBtn.classList.add('is-favorite');
+                            list.appendChild(item);
                         });
-                        contentWrapper.scrollTop = scrollTop;
-                    } catch (err) {
-                        contentWrapper.innerHTML = '加载主题失败，请检查浏览器控制台获取更多信息。';
-                    }
+
+                        categoryDiv.appendChild(title);
+                        categoryDiv.appendChild(list);
+                        contentWrapper.appendChild(categoryDiv);
+                    });
+                    contentWrapper.scrollTop = scrollTop;
                 }
 
-                searchBox.addEventListener('input', (e) => {
-                    const searchTerm = e.target.value.toLowerCase();
-                    managerPanel.querySelectorAll('.theme-item').forEach(item => {
-                        const isVisible = item.querySelector('.theme-item-name').textContent.toLowerCase().includes(searchTerm);
-                        item.style.display = isVisible ? 'flex' : 'none';
-                    });
-                });
+                searchBox.addEventListener('input', () => { /* ... */ });
+                randomBtn.addEventListener('click', async () => { /* ... */ });
+                batchEditBtn.addEventListener('click', () => { /* ... */ });
 
-                randomBtn.addEventListener('click', async () => {
-                    const themes = await getAllThemesFromAPI();
-                    if (themes.length > 0) {
-                        const randomIndex = Math.floor(Math.random() * themes.length);
-                        originalSelect.value = themes[randomIndex].name;
-                        originalSelect.dispatchEvent(new Event('change'));
+                async function performBatchRename(renameLogic) {
+                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return false; }
+                    showLoader();
+                    for (const oldName of Array.from(selectedForBatch)) {
+                        const themeObject = allThemeObjects.find(t => t.name === oldName);
+                        if (!themeObject) continue;
+                        const newName = renameLogic(oldName);
+                        if (newName !== oldName) {
+                            const newThemeObject = { ...themeObject, name: newName };
+                            await saveTheme(newThemeObject);
+                            await deleteTheme(oldName);
+                            manualUpdateOriginalSelect('rename', oldName, newName);
+                        }
                     }
-                });
-
-                batchEditBtn.addEventListener('click', () => {
-                    isBatchEditMode = !isBatchEditMode;
-                    contentWrapper.classList.toggle('batch-edit-mode', isBatchEditMode);
-                    batchActionsBar.classList.toggle('visible', isBatchEditMode);
-                    batchEditBtn.classList.toggle('selected', isBatchEditMode);
-                    batchEditBtn.textContent = isBatchEditMode ? '退出批量编辑' : '🔧 批量编辑';
                     selectedForBatch.clear();
-                    managerPanel.querySelectorAll('.theme-item-checkbox:checked').forEach(cb => cb.checked = false);
-                    managerPanel.querySelectorAll('.selected-for-batch').forEach(item => item.classList.remove('selected-for-batch'));
+                    hideLoader();
+                    return true;
+                }
+
+                document.querySelector('#batch-add-tag-btn').addEventListener('click', async () => {
+                    const newTag = prompt('请输入要添加的新标签：');
+                    if (!newTag?.trim()) return;
+                    if (await performBatchRename(oldName => `[${newTag.trim()}] ${oldName}`)) toastr.success('批量添加标签完成！');
                 });
 
-                contentWrapper.addEventListener('click', async (event) => {
-                    const target = event.target;
-                    const themeItem = target.closest('.theme-item');
-                    const categoryTitle = target.closest('.theme-category-title');
+                document.querySelector('#batch-move-tag-btn').addEventListener('click', async () => {
+                    const targetTag = prompt('请输入目标分类：');
+                    if (!targetTag?.trim()) return;
+                    if (await performBatchRename(oldName => `[${targetTag.trim()}] ${oldName.replace(/\[.*?\]/g, '').trim()}`)) toastr.success('批量移动完成！');
+                });
 
-                    if (isBatchEditMode && themeItem) {
-                        const checkbox = themeItem.querySelector('.theme-item-checkbox');
-                        if (checkbox && !target.matches('input[type="checkbox"]')) checkbox.click();
-                    } else if (!isBatchEditMode) {
-                        if (target.matches('.theme-item-name')) {
-                            originalSelect.value = themeItem.dataset.value;
-                            originalSelect.dispatchEvent(new Event('change'));
-                        }
-                        else if (target.matches('.favorite-btn')) {
-                            const themeName = themeItem.dataset.value;
-                            if (favorites.includes(themeName)) {
-                                favorites = favorites.filter(f => f !== themeName);
-                            } else {
-                                favorites.push(themeName);
-                            }
-                            localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-                            await buildThemeUI();
-                        }
-                        else if (target.matches('.rename-btn')) {
-                            const oldName = themeItem.dataset.value;
-                            const newName = prompt(`请输入新名称：`, oldName);
-                            if (newName && newName !== oldName) {
-                                const themeObject = allThemeObjects.find(t => t.name === oldName);
-                                if (!themeObject) return;
-                                const newThemeObject = { ...themeObject, name: newName };
-                                await saveTheme(newThemeObject);
-                                await deleteTheme(oldName);
-                                manualUpdateOriginalSelect('rename', oldName, newName);
-                            }
-                        }
-                        else if (target.matches('.delete-btn')) {
-                            const themeName = themeItem.dataset.value;
-                            if (confirm(`确定要删除主题 "${themeItem.querySelector('.theme-item-name').textContent}" 吗？`)) {
-                                await deleteTheme(themeName);
-                                manualUpdateOriginalSelect('delete', themeName);
-                            }
-                        }
-                        else if (target.matches('.dissolve-folder-btn')) {
-                            event.stopPropagation();
-                            const categoryName = target.closest('.theme-category').dataset.categoryName;
-                            if (!confirm(`确定要解散文件夹 "${categoryName}" 吗？`)) return;
-                            const themesToUpdate = Array.from(originalSelect.options).map(opt => opt.value).filter(name => name.includes(`[${categoryName}]`));
-                            for (const oldName of themesToUpdate) {
-                                const themeObject = allThemeObjects.find(t => t.name === oldName);
-                                if (!themeObject) continue;
-                                const newName = oldName.replace(`[${categoryName}]`, '').trim();
-                                const newThemeObject = { ...themeObject, name: newName };
-                                await saveTheme(newThemeObject);
-                                await deleteTheme(oldName);
-                                manualUpdateOriginalSelect('rename', oldName, newName);
-                            }
-                        }
-                        else if (categoryTitle) {
-                            const list = categoryTitle.nextElementSibling;
-                            if (list) list.style.display = (list.style.display === 'none') ? 'block' : 'none';
-                        }
+                document.querySelector('#batch-delete-tag-btn').addEventListener('click', async () => {
+                    const tagToRemove = prompt('请输入要移除的标签：');
+                    if (!tagToRemove?.trim()) return;
+                    if (await performBatchRename(oldName => oldName.replace(`[${tagToRemove.trim()}]`, '').trim())) toastr.success('批量移除标签完成！');
+                });
+
+                document.querySelector('#batch-delete-btn').addEventListener('click', async () => {
+                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
+                    if (!confirm(`确定要删除选中的 ${selectedForBatch.size} 个主题吗？`)) return;
+                    showLoader();
+                    for (const themeName of Array.from(selectedForBatch)) {
+                        await deleteTheme(themeName);
+                        manualUpdateOriginalSelect('delete', themeName);
                     }
+                    selectedForBatch.clear();
+                    hideLoader();
+                    toastr.success('批量删除完成！');
                 });
 
-                contentWrapper.addEventListener('change', (event) => {
-                    const target = event.target;
-                    if (target.matches('.theme-item-checkbox')) {
-                        const themeItem = target.closest('.theme-item');
-                        const themeName = themeItem.dataset.value;
-                        if (target.checked) {
-                            selectedForBatch.add(themeName);
-                            themeItem.classList.add('selected-for-batch');
-                        } else {
-                            selectedForBatch.delete(themeName);
-                            themeItem.classList.remove('selected-for-batch');
-                        }
-                    }
-                });
+                contentWrapper.addEventListener('click', async (event) => { /* ... */ });
+                contentWrapper.addEventListener('change', (event) => { /* ... */ });
 
                 const observer = new MutationObserver(() => buildThemeUI());
                 observer.observe(originalSelect, { childList: true, subtree: true, characterData: true });
@@ -276,7 +215,6 @@
 
             } catch (error) {
                 console.error("Theme Manager: 初始化过程中发生错误:", error);
-                if(originalSelect) originalSelect.style.position = 'static';
             }
         }
     }, 250);

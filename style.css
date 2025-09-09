@@ -43,7 +43,7 @@
 /* =================================== */
 @media (max-width: 768px) {
     #theme-manager-panel {
-        width: 100%;
+        width: 200%;
         max-width: none;
     }
      .theme-item {
@@ -61,4 +61,5 @@
         margin-left: auto; /* 当换行时，自动靠右 */
     }
 }
+
 

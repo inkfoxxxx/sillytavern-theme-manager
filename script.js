@@ -1,4 +1,4 @@
-(function () {
+ (function () {
     'use strict';
 
     const initInterval = setInterval(() => {
@@ -174,27 +174,25 @@
                             list.className = 'theme-list';
                             list.style.display = 'block';
 
+                            // 这是新的、修复后的循环
                             themesInCategory.forEach(theme => {
                                 const item = document.createElement('li');
                                 item.className = 'theme-item';
                                 item.dataset.value = theme.value;
-
+    
+                               // 【核心修改】直接用字符来决定星星的样式
                                 const isFavorited = favorites.includes(theme.value);
-                                const starIconClass = isFavorited ? 'fa-solid' : 'fa-regular';
+                                const starCharacter = isFavorited ? '★' : '☆';
 
                                 item.innerHTML = `
                                     <span class="theme-item-name">${theme.display}</span>
                                     <div class="theme-item-buttons">
-                                        <button class="favorite-btn" title="收藏">
-                                            <i class="${starIconClass} fa-star"></i>
-                                        </button>
-                                        <button class="rename-btn" title="重命名"><i class="fa-solid fa-pencil"></i></button>
-                                        <button class="delete-btn" title="删除"><i class="fa-solid fa-trash-can"></i></button>
+                                        <button class="favorite-btn" title="收藏">${starCharacter}</button>
+                                        <button class="rename-btn" title="重命名">✏️</button>
+                                        <button class="delete-btn" title="删除">🗑️</button>
                                     </div>`;
-                                
-                                if (isFavorited) {
-                                    item.querySelector('.favorite-btn').classList.add('is-favorite');
-                                }
+    
+    
                                 list.appendChild(item);
                             });
 
@@ -307,12 +305,14 @@
                 });
                 document.querySelector('#batch-delete-btn').addEventListener('click', performBatchDelete);
 
+                // 事件监听器
                 contentWrapper.addEventListener('click', async (event) => {
                     const target = event.target;
                     const button = target.closest('button');
                     const themeItem = target.closest('.theme-item');
                     const categoryTitle = target.closest('.theme-category-title');
 
+                    // 第一步：处理文件夹标题的点击
                     if (categoryTitle) {
                         if (button && button.classList.contains('dissolve-folder-btn')) {
                             event.stopPropagation();
@@ -334,13 +334,15 @@
                             const list = categoryTitle.nextElementSibling;
                             if (list) list.style.display = (list.style.display === 'none') ? 'block' : 'none';
                         }
-                        return;
+                        return; // 处理完文件夹相关操作后，直接结束
                     }
 
+                    // 如果点击的不是主题项，也直接结束
                     if (!themeItem) return;
 
                     const themeName = themeItem.dataset.value;
 
+                    // 第二步：根据是否处于批量编辑模式，来处理主题项的点击
                     if (isBatchEditMode) {
                         if (selectedForBatch.has(themeName)) {
                             selectedForBatch.delete(themeName);
@@ -349,22 +351,19 @@
                             selectedForBatch.add(themeName);
                             themeItem.classList.add('selected-for-batch');
                         }
-                    } else {
+                    } 
+                    else { // 非批量编辑模式
                         if (button && button.classList.contains('favorite-btn')) {
-                            const starIcon = button.querySelector('i.fa-star');
+                            // 这是我们要替换的核心逻辑
                             if (favorites.includes(themeName)) {
                                 favorites = favorites.filter(f => f !== themeName);
-                                starIcon.classList.remove('fa-solid');
-                                starIcon.classList.add('fa-regular');
-                                button.classList.remove('is-favorite');
+                                button.textContent = '☆'; // 变为空心
                             } else {
                                 favorites.push(themeName);
-                                starIcon.classList.remove('fa-regular');
-                                starIcon.classList.add('fa-solid');
-                                button.classList.add('is-favorite');
+                                button.textContent = '★'; // 变为实心
                             }
                             localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-                            await buildThemeUI();
+                            await buildThemeUI(); // 重绘以更新收藏夹
                         }
                         else if (button && button.classList.contains('rename-btn')) {
                             const oldName = themeName;
@@ -384,13 +383,13 @@
                                 toastr.success(`主题 "${themeItem.querySelector('.theme-item-name').textContent}" 已删除！`);
                                 manualUpdateOriginalSelect('delete', themeName);
                             }
-                        } else if (target.matches('.theme-item-name')) {
+                        } 
+                        else { // 如果点击的不是按钮，那就是主题项本身
                             originalSelect.value = themeName;
                             originalSelect.dispatchEvent(new Event('change'));
                         }
                     }
                 });
-
                 originalSelect.addEventListener('change', updateActiveState);
 
                 const observer = new MutationObserver((mutations) => {
@@ -418,3 +417,4 @@
         }
     }, 250);
 })();
+

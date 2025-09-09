@@ -140,3 +140,48 @@
 .theme-item-checkbox { display: none; margin-right: 10px; }
 .batch-edit-mode .theme-item-checkbox { display: inline-block; }
 
+/* =================================== */
+/* == 移动端响应式设计 (手机版样式) == */
+/* =================================== */
+
+/* 当屏幕宽度小于等于 768px 时，应用以下规则 */
+@media (max-width: 768px) {
+
+    /* 1. 让主操作按钮更紧凑，允许换行 */
+    .theme-manager-actions {
+        flex-direction: column; /* 改为垂直排列 */
+        align-items: stretch; /* 让按钮宽度撑满 */
+    }
+
+    /* 2. 减小主题项的内边距，节省空间 */
+    .theme-item {
+        padding: 6px 8px;
+    }
+
+    /* 3. 缩小操作按钮的图标，并增大点击区域 */
+    .theme-item-buttons button {
+        font-size: 18px; /* 稍微增大图标尺寸，方便点击 */
+        padding: 4px;
+    }
+
+    /* 4. 缩小文件夹标题的字体，并让“解散”按钮更紧凑 */
+    .theme-category-title {
+        padding: 6px 5px;
+        font-size: 0.9em; /* 稍微缩小字体 */
+    }
+
+    .dissolve-folder-btn {
+        font-size: 12px;
+        padding: 0 4px;
+    }
+
+    /* 5. 如果空间实在太紧张，我们可以考虑隐藏原生按钮，或者让它们变得更小 */
+    #native-buttons-container .menu_button {
+        padding: 5px; /* 减小原生按钮的内边距 */
+        font-size: 0.8em; /* 如果原生按钮有文字，可以缩小文字 */
+    }
+
+    #native-buttons-container .menu_button i {
+        font-size: 1em; /* 确保图标不会变得太小 */
+    }
+}

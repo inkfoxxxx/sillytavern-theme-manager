@@ -245,15 +245,48 @@
                });
                 document.querySelector('#batch-delete-btn').addEventListener('click', performBatchDelete);
 
+                // 这是新的、修复后的代码
                 contentWrapper.addEventListener('click', async (event) => {
                     const target = event.target;
                     const themeItem = target.closest('.theme-item');
                     const categoryTitle = target.closest('.theme-category-title');
 
+                    // 【核心修复】第一步：无论在哪种模式下，都优先处理文件夹标题的点击
+                    if (categoryTitle) {
+                        // 如果点击的是解散按钮，单独处理，不触发折叠
+                        if (target.matches('.dissolve-folder-btn')) {
+                            event.stopPropagation();
+                            const categoryName = categoryTitle.closest('.theme-category').dataset.categoryName;
+                            if (!confirm(`确定要解散文件夹 "${categoryName}" 吗？`)) return;
+                            // ... (后续解散逻辑保持不变)
+                            const themesToUpdate = Array.from(originalSelect.options).map(opt => opt.value).filter(name => name.includes(`[${categoryName}]`));
+                            showLoader();
+                            for (const oldName of themesToUpdate) {
+                                const themeObject = allThemeObjects.find(t => t.name === oldName);
+                                if (!themeObject) continue;
+                                const newName = oldName.replace(`[${categoryName}]`, '').trim();
+                                await saveTheme({ ...themeObject, name: newName });
+                                await deleteTheme(oldName);
+                                manualUpdateOriginalSelect('rename', oldName, newName);
+                            }
+                            hideLoader();
+                            toastr.success(`文件夹 "${categoryName}" 已解散！`);
+                            return; // 处理完解散后，直接结束
+                        }
+        
+                        // 如果不是解散按钮，就执行折叠操作
+                        const list = categoryTitle.nextElementSibling;
+                        if (list) list.style.display = (list.style.display === 'none') ? 'block' : 'none';
+                        return; // 处理完折叠后，直接结束，避免干扰后续逻辑
+                    }
+
+                    // 第二步：根据是否处于批量编辑模式，来处理主题项的点击
                     if (isBatchEditMode && themeItem) {
                         const checkbox = themeItem.querySelector('.theme-item-checkbox');
                         if (checkbox && !target.matches('input[type="checkbox"]')) checkbox.click();
-                    } else if (!isBatchEditMode) {
+                    } 
+                    else if (!isBatchEditMode && themeItem) {
+                   // 非编辑模式下的按钮点击逻辑 (收藏、重命名、删除、应用主题)
                         if (target.matches('.theme-item-name')) {
                             originalSelect.value = themeItem.dataset.value;
                             originalSelect.dispatchEvent(new Event('change'));
@@ -272,6 +305,7 @@
                                 if (!themeObject) return;
                                 await saveTheme({ ...themeObject, name: newName });
                                 await deleteTheme(oldName);
+
                                 toastr.success(`主题已重命名为 "${newName}"！`);
                                 manualUpdateOriginalSelect('rename', oldName, newName);
                             }
@@ -283,27 +317,6 @@
                                 toastr.success(`主题 "${themeItem.querySelector('.theme-item-name').textContent}" 已删除！`);
                                 manualUpdateOriginalSelect('delete', themeName);
                             }
-                        }
-                        else if (target.matches('.dissolve-folder-btn')) {
-                            event.stopPropagation();
-                            const categoryName = target.closest('.theme-category').dataset.categoryName;
-                            if (!confirm(`确定要解散文件夹 "${categoryName}" 吗？`)) return;
-                            const themesToUpdate = Array.from(originalSelect.options).map(opt => opt.value).filter(name => name.includes(`[${categoryName}]`));
-                            showLoader();
-                            for (const oldName of themesToUpdate) {
-                                const themeObject = allThemeObjects.find(t => t.name === oldName);
-                                if (!themeObject) continue;
-                                const newName = oldName.replace(`[${categoryName}]`, '').trim();
-                                await saveTheme({ ...themeObject, name: newName });
-                                await deleteTheme(oldName);
-                                manualUpdateOriginalSelect('rename', oldName, newName);
-                            }
-                            hideLoader();
-                            toastr.success(`文件夹 "${categoryName}" 已解散！`);
-                        }
-                        else if (categoryTitle) {
-                            const list = categoryTitle.nextElementSibling;
-                            if (list) list.style.display = (list.style.display === 'none') ? 'block' : 'none';
                         }
                     }
                 });
@@ -345,4 +358,5 @@
         }
     }, 250);
 })();
+
 

@@ -184,4 +184,13 @@
     #native-buttons-container .menu_button i {
         font-size: 1em; /* 确保图标不会变得太小 */
     }
+    
+    /* 【核心修复】防止长文本在手机上竖向排列 */
+    .theme-item-name {
+        white-space: nowrap;      /* 强制不换行 */
+        overflow: hidden;         /* 隐藏超出的部分 */
+        text-overflow: ellipsis;  /* 显示省略号 */
+        flex-shrink: 1;           /* 允许该元素在空间不足时收缩 */
+    }
 }
+

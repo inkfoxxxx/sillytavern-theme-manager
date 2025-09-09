@@ -1,10 +1,13 @@
 (function () {
     'use strict';
 
-    // 【核心修改】从 common.js 模块中解构出我们需要的函数
-    const { getRequestHeaders } = window.SillyTavern.extensions.common;
+    // 【核心、最终、决定性的修改！】
+    // 我们不再依赖任何外部模块，而是直接从 SillyTavern 的核心上下文获取工具
+    const { getRequestHeaders } = SillyTavern.getContext();
 
     const FAVORITES_KEY = 'themeManager_favorites';
+
+    // --- 后续所有代码都保持不变，因为它们现在能拿到正确的工具了 ---
 
     async function apiRequest(endpoint, method = 'POST', body = {}) {
         try {
@@ -36,8 +39,6 @@
         }
     }
 
-    // --- 后续所有代码都保持不变 ---
-
     async function getAllThemes() {
         const settings = await apiRequest('settings/get', 'POST', {});
         return settings.themes || [];
@@ -55,7 +56,7 @@
         const originalSelect = document.querySelector('#themes');
 
         if (originalSelect && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager v6.0 (Victory): 找到了目标元素，开始初始化...");
+            console.log("Theme Manager (Final Victory): 找到了目标元素，开始初始化...");
             clearInterval(initInterval);
 
             try {

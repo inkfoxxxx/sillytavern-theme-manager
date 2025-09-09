@@ -7,7 +7,7 @@
         const saveAsButton = document.querySelector('#ui-preset-save-button');
 
         if (originalSelect && updateButton && saveAsButton && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v20.0 Final Memory Sync): 初始化...");
+            console.log("Theme Manager (v21.0 Final Reload Sync): 初始化...");
             clearInterval(initInterval);
 
             try {
@@ -39,21 +39,6 @@
                 async function getAllThemesFromAPI() { return (await apiRequest('settings/get', 'POST', {})).themes || []; }
                 async function deleteTheme(themeName) { await apiRequest('themes/delete', 'POST', { name: themeName }); }
                 async function saveTheme(themeObject) { await apiRequest('themes/save', 'POST', themeObject); }
-                function manualUpdateOriginalSelect(action, oldName, newName) {
-                    const originalSelect = document.querySelector('#themes');
-                    if (!originalSelect) return;
-                    if (action === 'add') {
-                        const option = document.createElement('option');
-                        option.value = newName; option.textContent = newName;
-                        originalSelect.appendChild(option);
-                    } else if (action === 'delete') {
-                        const optionToDelete = originalSelect.querySelector(`option[value="${oldName}"]`);
-                        if (optionToDelete) optionToDelete.remove();
-                    } else if (action === 'rename') {
-                        const optionToRename = originalSelect.querySelector(`option[value="${oldName}"]`);
-                        if (optionToRename) { optionToRename.value = newName; optionToRename.textContent = newName; }
-                    }
-                }
 
                 const originalContainer = originalSelect.parentElement;
                 if (!originalContainer) return;
@@ -63,7 +48,7 @@
                 managerPanel.id = 'theme-manager-panel';
                 managerPanel.innerHTML = `
                     <div id="theme-manager-header">
-                        <h4>🎨 主题美化管理</h4>
+                        <h4>🎨 主题仪表盘</h4>
                         <div id="native-buttons-container"></div>
                         <div id="theme-manager-toggle-icon" class="fa-solid fa-chevron-down"></div>
                     </div>
@@ -228,12 +213,12 @@
                             const newThemeObject = { ...themeObject, name: newName };
                             await saveTheme(newThemeObject);
                             await deleteTheme(oldName);
-                            manualUpdateOriginalSelect('rename', oldName, newName);
                         }
                     }
-                    await reloadThemes();
                     selectedForBatch.clear();
                     hideLoader();
+                    toastr.success('批量操作完成！正在刷新页面...');
+                    setTimeout(() => location.reload(), 1000);
                 }
 
                 async function performBatchDelete() {
@@ -241,19 +226,12 @@
                     if (!confirm(`确定要删除选中的 ${selectedForBatch.size} 个主题吗？`)) return;
                     showLoader();
                     for (const themeName of selectedForBatch) {
-                        const isCurrentlyActive = originalSelect.value === themeName;
                         await deleteTheme(themeName);
-                        manualUpdateOriginalSelect('delete', themeName);
-                        if (isCurrentlyActive) {
-                            const azureOption = originalSelect.querySelector('option[value="Azure"]');
-                            originalSelect.value = azureOption ? 'Azure' : (originalSelect.options[0]?.value || '');
-                            originalSelect.dispatchEvent(new Event('change'));
-                        }
                     }
-                    await reloadThemes();
                     selectedForBatch.clear();
                     hideLoader();
-                    toastr.success('批量删除完成！');
+                    toastr.success('批量删除完成！正在刷新页面...');
+                    setTimeout(() => location.reload(), 1000);
                 }
 
                 header.addEventListener('click', (e) => {
@@ -332,26 +310,23 @@
 
                 document.querySelector('#batch-add-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
-                    const newTag = prompt('请输入要添加的新标签（文件夹名）：');
+                    const newTag = prompt('请输入要添加的新标签：');
                     if (newTag && newTag.trim()) {
                         await performBatchRename(oldName => `[${newTag.trim()}] ${oldName}`);
-                        toastr.success(`已为选中主题添加标签 "[${newTag.trim()}]"`);
                     }
                 });
                 document.querySelector('#batch-move-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
-                    const targetTag = prompt('请输入要移动到的目标分类（文件夹名）：');
+                    const targetTag = prompt('请输入要移动到的目标分类：');
                     if (targetTag && targetTag.trim()) {
                          await performBatchRename(oldName => `[${targetTag.trim()}] ${oldName.replace(/\[.*?\]/g, '').trim()}`);
-                         toastr.success(`已将选中主题移动到分类 "[${targetTag.trim()}]"`);
                     }
                 });
                 document.querySelector('#batch-delete-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
-                    const tagToRemove = prompt('请输入要移除的标签（等同于将所选美化从以该标签命名的文件夹移出）：');
+                    const tagToRemove = prompt('请输入要移除的标签：');
                     if (tagToRemove && tagToRemove.trim()) {
                         await performBatchRename(oldName => oldName.replace(`[${tagToRemove.trim()}]`, '').trim());
-                        toastr.success(`已从选中主题移除标签 "[${tagToRemove.trim()}]"`);
                     }
                 });
                 document.querySelector('#batch-delete-btn').addEventListener('click', performBatchDelete);
@@ -375,11 +350,10 @@
                                 const newName = oldName.replace(`[${categoryName}]`, '').trim();
                                 await saveTheme({ ...themeObject, name: newName });
                                 await deleteTheme(oldName);
-                                manualUpdateOriginalSelect('rename', oldName, newName);
                             }
-                            await reloadThemes();
                             hideLoader();
-                            toastr.success(`文件夹 "${categoryName}" 已解散！`);
+                            toastr.success(`文件夹 "${categoryName}" 已解散！正在刷新页面...`);
+                            setTimeout(() => location.reload(), 1000);
                         } else {
                             const list = categoryTitle.nextElementSibling;
                             if (list) list.style.display = (list.style.display === 'none') ? 'block' : 'none';
@@ -419,18 +393,18 @@
                                 if (!themeObject) return;
                                 await saveTheme({ ...themeObject, name: newName });
                                 await deleteTheme(oldName);
-                                toastr.success(`主题已重命名为 "${newName}"！`);
-                                manualUpdateOriginalSelect('rename', oldName, newName);
-                                await reloadThemes();
+                                toastr.success(`主题已重命名为 "${newName}"！正在刷新页面...`);
+                                setTimeout(() => location.reload(), 1000);
                             }
                         }
                         else if (button && button.classList.contains('delete-btn')) {
-                            const isCurrentlyActive = originalSelect.value === themeName;
                             if (confirm(`确定要删除主题 "${themeItem.querySelector('.theme-item-name').textContent}" 吗？`)) {
+                                const isCurrentlyActive = originalSelect.value === themeName;
                                 await deleteTheme(themeName);
                                 toastr.success(`主题 "${themeItem.querySelector('.theme-item-name').textContent}" 已删除！`);
-                                manualUpdateOriginalSelect('delete', themeName);
+                                
                                 await reloadThemes();
+                                
                                 if (isCurrentlyActive) {
                                     const azureOption = originalSelect.querySelector('option[value="Azure"]');
                                     originalSelect.value = azureOption ? 'Azure' : (originalSelect.options[0]?.value || '');
@@ -447,18 +421,7 @@
 
                 originalSelect.addEventListener('change', updateActiveState);
 
-                const observer = new MutationObserver((mutations) => {
-                    for (let mutation of mutations) {
-                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                            const newNode = mutation.addedNodes[0];
-                            if (newNode.tagName === 'OPTION' && newNode.value) {
-                                toastr.success(`已另存为新主题: "${newNode.value}"`);
-                                break;
-                            }
-                        }
-                    }
-                    buildThemeUI();
-                });
+                const observer = new MutationObserver(() => buildThemeUI());
                 observer.observe(originalSelect, { childList: true, subtree: true, characterData: true });
 
                 buildThemeUI().then(() => {

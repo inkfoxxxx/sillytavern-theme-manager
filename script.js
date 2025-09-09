@@ -2,8 +2,7 @@
     'use strict';
 
     // 从 SillyTavern 核心上下文中，安全地获取我们需要的官方工具
-    // 我们现在知道，getSettings 也是一个关键工具！
-    const { getRequestHeaders, reloadThemes, getSettings } = SillyTavern.getContext();
+    const { getRequestHeaders, getSettings } = SillyTavern.getContext();
 
     const FAVORITES_KEY = 'themeManager_favorites';
 
@@ -49,6 +48,32 @@
         await apiRequest('themes/save', 'POST', themeObject);
     }
 
+    // 【核心修复！】模仿原生逻辑，手动更新原始的<select>菜单
+    function manualUpdateOriginalSelect(action, oldName, newName) {
+        const originalSelect = document.querySelector('#themes');
+        if (!originalSelect) return;
+
+        switch (action) {
+            case 'add':
+                const option = document.createElement('option');
+                option.value = newName;
+                option.textContent = newName;
+                originalSelect.appendChild(option);
+                break;
+            case 'delete':
+                const optionToDelete = originalSelect.querySelector(`option[value="${oldName}"]`);
+                if (optionToDelete) optionToDelete.remove();
+                break;
+            case 'rename':
+                const optionToRename = originalSelect.querySelector(`option[value="${oldName}"]`);
+                if (optionToRename) {
+                    optionToRename.value = newName;
+                    optionToRename.textContent = newName;
+                }
+                break;
+        }
+    }
+
     const initInterval = setInterval(() => {
         const originalSelect = document.querySelector('#themes');
 
@@ -59,15 +84,18 @@
             try {
                 const originalContainer = originalSelect.parentElement;
                 if (!originalContainer) return;
-                originalSelect.style.display = 'none';
+                // 我们不再隐藏原始select，因为它现在是我们的数据源。我们只隐藏它的视觉外观。
+                originalSelect.style.position = 'absolute';
+                originalSelect.style.opacity = '0';
+                originalSelect.style.pointerEvents = 'none';
 
                 const managerPanel = document.createElement('div');
                 managerPanel.id = 'theme-manager-panel';
                 managerPanel.innerHTML = `
-                    <h4><span>🎨主题仪表盘</span></h4>
+                    <h4><span>🎨 主题仪表盘 (最终胜利版)</span></h4>
                     <div class="theme-manager-actions">
-                        <input type="search" id="theme-search-box" placeholder="🔍搜索主题...">
-                        <button id="random-theme-btn" title="随机应用一个主题">🎲随机</button>
+                        <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
+                        <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>
                     </div>
                     <div class="theme-content"></div>
                 `;
@@ -78,6 +106,7 @@
                 const contentWrapper = managerPanel.querySelector('.theme-content');
 
                 let favorites = JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
+                let allThemeObjects = []; // 缓存主题对象，用于重命名
 
                 function saveFavorites() {
                     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
@@ -86,11 +115,14 @@
                 async function buildThemeUI() {
                     contentWrapper.innerHTML = '正在加载主题...';
                     try {
-                        const allThemeObjects = await getAllThemesFromAPI();
+                        // 在每次构建UI时，都从API获取最新的完整主题对象列表并缓存
+                        allThemeObjects = await getAllThemesFromAPI();
                         contentWrapper.innerHTML = '';
     
-                        const allThemes = allThemeObjects.map(themeObj => {
-                            const themeName = themeObj.name;
+                        const allThemes = Array.from(originalSelect.options).map(option => {
+                            const themeName = option.value;
+                            if (!themeName) return null;
+
                             let displayName = themeName;
                             const categories = [];
                             const tagRegex = /\[(.*?)\]/g;
@@ -98,24 +130,20 @@
     
                             while ((match = tagRegex.exec(themeName)) !== null) {
                                 const tag = match[1].trim();
-                                if (tag) {
-                                    categories.push(tag);
-                                }
+                                if (tag) categories.push(tag);
                             }
                             
                             displayName = themeName.replace(tagRegex, '').trim();
-                            if (categories.length === 0) {
-                                categories.push('未分类');
-                            }
+                            if (categories.length === 0) categories.push('未分类');
                             
-                            return { value: themeName, display: displayName, categories: categories };
-                        });
+                            return { value: themeName, display: displayName, categories };
+                        }).filter(Boolean);
                         
                         const allCategories = new Set(allThemes.flatMap(t => t.categories));
-                        const sortedCategories = ['⭐收藏夹', ...Array.from(allCategories).sort((a, b) => a.localeCompare(b, 'zh-CN'))];
+                        const sortedCategories = ['⭐ 收藏夹', ...Array.from(allCategories).sort((a, b) => a.localeCompare(b, 'zh-CN'))];
     
                         sortedCategories.forEach(category => {
-                            const themesInCategory = (category === '⭐收藏夹')
+                            const themesInCategory = (category === '⭐ 收藏夹')
                                 ? allThemes.filter(theme => favorites.includes(theme.value))
                                 : allThemes.filter(theme => theme.categories.includes(category));
     
@@ -169,37 +197,37 @@
     
                                 renameBtn.addEventListener('click', async (e) => {
                                     e.stopPropagation();
-                                    const newName = prompt(`请输入 "${theme.display}" 的新名称：`, theme.value);
-                                    if (newName && newName !== theme.value) {
+                                    const oldName = theme.value;
+                                    const newName = prompt(`请输入 "${theme.display}" 的新名称：`, oldName);
+                                    if (newName && newName !== oldName) {
                                         try {
-                                            const themeObject = allThemeObjects.find(t => t.name === theme.value);
+                                            const themeObject = allThemeObjects.find(t => t.name === oldName);
                                             if (!themeObject) {
-                                                toastr.error('找不到原始主题对象！');
+                                                toastr.error('找不到原始主题对象！请先等待主题列表加载完成。');
                                                 return;
                                             }
                                             const newThemeObject = { ...themeObject, name: newName };
                                             await saveTheme(newThemeObject);
-                                            await deleteTheme(theme.value);
+                                            await deleteTheme(oldName);
                                             toastr.success(`主题已重命名为 "${newName}"！`);
                                             
-                                            // 【核心修复！】发出“双重通知”
-                                            await getSettings(); // 1. 通知“总管家”更新花名册
-                                            await reloadThemes(); // 2. 通知“下拉菜单”也更新
-                                            await buildThemeUI(); // 3. 最后，刷新我们自己的UI
+                                            // 【核心修复！】手动同步UI
+                                            manualUpdateOriginalSelect('rename', oldName, newName);
+                                            await buildThemeUI();
                                         } catch (err) {}
                                     }
                                 });
     
                                 deleteBtn.addEventListener('click', async (e) => {
                                     e.stopPropagation();
+                                    const themeName = theme.value;
                                     if (confirm(`确定要删除主题 "${theme.display}" 吗？此操作无法撤销。`)) {
                                         try {
-                                            await deleteTheme(theme.value);
+                                            await deleteTheme(themeName);
                                             toastr.success(`主题 "${theme.display}" 已删除！`);
                                             
-                                            // 【核心修复！】发出“双重通知”
-                                            await getSettings();
-                                            await reloadThemes();
+                                            // 【核心修复！】手动同步UI
+                                            manualUpdateOriginalSelect('delete', themeName, null);
                                             await buildThemeUI();
                                         } catch (err) {}
                                     }
@@ -241,7 +269,13 @@
                     }
                 });
                 
+                // 监听原始select的变化，以同步我们的高亮状态
                 originalSelect.addEventListener('change', updateActiveState);
+
+                // 监听DOM变化，以应对原生“另存为”等操作
+                const observer = new MutationObserver(buildThemeUI);
+                observer.observe(originalSelect, { childList: true });
+
                 buildThemeUI();
                 
             } catch (error) {

@@ -1,6 +1,36 @@
 /* 主题仪表盘 (v10.0 最终完美版) 样式 */
-#theme-manager-panel { background-color: #3a3a3a; border-radius: 8px; padding: 15px; margin-top: 10px; border: 1px solid #4a4a4a; }
-#theme-manager-panel h4 { margin-top: 0; color: #eaeaea; border-bottom: 1px solid #5a5a5a; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+#theme-manager-panel {
+    background-color: #3a3a3a;
+    border-radius: 8px;
+    padding: 10px; /* 修改：内边距从 15px 减小到 10px */
+    margin-top: 10px;
+    border: 1px solid #4a4a4a;
+    /* 新增下面三行 */
+    max-width: 500px; 
+    width: 100%;
+    box-sizing: border-box;
+}
+#theme-manager-panel h4 {
+    margin: 0; /* 修改 */
+    color: #eaeaea;
+    border: none; /* 修改 */
+    padding: 0; /* 修改 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+/* --- 新增 --- */
+#theme-manager-header {
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+}
+#theme-manager-header:hover {
+    background-color: #454545;
+}
 .theme-manager-actions { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
 .theme-manager-actions input[type="search"] { flex-grow: 1; background-color: #2a2a2a; border: 1px solid #5a5a5a; color: #eaeaea; border-radius: 4px; padding: 5px 8px; min-width: 150px; }
 .theme-manager-actions button { background-color: #5a5a5a; color: #eaeaea; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
@@ -36,6 +66,24 @@
 .batch-edit-mode .theme-item-checkbox { 
     display: inline-block; /* 批量模式下，才显示出来 */
 }
-
+/* --- 新增 --- */
+#theme-manager-toggle-icon {
+    transition: transform 0.3s ease;
+}
+#theme-manager-toggle-icon.collapsed {
+    transform: rotate(-90deg);
+}
+/* --- 新增 --- */
+#theme-manager-content {
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+/* --- 新增 --- */
+#native-buttons-container {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+}
 .batch-edit-mode .theme-item-buttons { display: none; }
 .theme-item.selected-for-batch { background-color: #0056b3; }
+

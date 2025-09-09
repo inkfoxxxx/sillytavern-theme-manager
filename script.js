@@ -9,35 +9,50 @@
 
     // --- 后续所有代码都保持不变，因为它们现在能拿到正确的工具了 ---
 
-    async function apiRequest(endpoint, method = 'POST', body = {}) {
-        try {
-            const headers = getRequestHeaders();
-            
-            const options = {
-                method: method,
-                headers: headers,
-            };
+// 【全新的、更宽容的 API 请求函数】
+async function apiRequest(endpoint, method = 'POST', body = {}) {
+    try {
+        const headers = SillyTavern.getContext().getRequestHeaders();
+        
+        const options = {
+            method: method,
+            headers: headers,
+        };
 
-            if (method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD') {
-                options.body = JSON.stringify(body);
-            }
-
-            const response = await fetch(`/api/${endpoint}`, options);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-            }
-
-            const responseText = await response.text();
-            return responseText ? JSON.parse(responseText) : {};
-
-        } catch (error) {
-            console.error(`API request to /api/${endpoint} failed:`, error);
-            toastr.error(`API请求失败: ${error.message}`);
-            throw error;
+        if (method.toUpperCase() !== 'GET' && method.toUpperCase() !== 'HEAD') {
+            options.body = JSON.stringify(body);
         }
+
+        const response = await fetch(`/api/${endpoint}`, options);
+        const responseText = await response.text(); // 首先，以纯文本形式获取回复
+
+        if (!response.ok) {
+            // 如果服务器返回错误状态，我们尝试解析JSON，因为错误信息通常是JSON格式
+            try {
+                const errorData = JSON.parse(responseText);
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            } catch (e) {
+                // 如果错误信息也不是JSON，就直接显示文本
+                throw new Error(responseText || `HTTP error! status: ${response.status}`);
+            }
+        }
+
+        // 如果服务器返回成功状态 (OK)
+        // 检查回复是不是简单的 "OK"
+        if (responseText.trim().toUpperCase() === 'OK') {
+            return { status: 'OK' }; // 如果是，我们就手动伪造一个成功的JSON对象
+        }
+
+        // 如果回复不是 "OK"，那么我们再尝试按正常的JSON来解析它
+        return responseText ? JSON.parse(responseText) : {};
+
+    } catch (error) {
+        console.error(`API request to /api/${endpoint} failed:`, error);
+        // 这里的报错信息会更精确
+        toastr.error(`API请求失败: ${error.message}`);
+        throw error;
     }
+}
 
     async function getAllThemes() {
         const settings = await apiRequest('settings/get', 'POST', {});
@@ -251,3 +266,4 @@
     }, 250);
 
 })();
+

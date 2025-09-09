@@ -153,18 +153,33 @@
         align-items: stretch; /* 让按钮宽度撑满 */
     }
 
-    /* 2. 减小主题项的内边距，节省空间 */
+    /* 2. 【核心修改】为主题项本身启用智能换行 */
     .theme-item {
-        padding: 6px 8px;
+        padding: 8px; /* 稍微增加内边距，让换行后不显得拥挤 */
+        flex-wrap: wrap; /* 允许内部元素（名字和按钮）换行 */
     }
 
-    /* 3. 缩小操作按钮的图标，并增大点击区域 */
+    /* 3. 【核心新增】让主题名称可以正常显示，不再被截断 */
+    .theme-item-name {
+        flex-grow: 1;    /* 允许它占据尽可能多的空间 */
+        min-width: 150px; /* 给名字一个最小宽度，避免被按钮挤得太窄 */
+        padding-right: 10px; /* 在名字和按钮之间留出一点空隙 */
+        /* 我们不再需要 white-space, overflow, text-overflow 这些规则了 */
+    }
+
+    /* 4. 【核心新增】让按钮组在换行后能自动对齐到右边 */
+    .theme-item-buttons {
+        flex-shrink: 0; /* 不允许按钮组被压缩 */
+        margin-left: auto; /* 当换行发生时，这个规则会自动把按钮推到最右边 */
+    }
+
+    /* 5. 缩小操作按钮的图标，并增大点击区域 (保留并优化) */
     .theme-item-buttons button {
         font-size: 18px; /* 稍微增大图标尺寸，方便点击 */
         padding: 4px;
     }
 
-    /* 4. 缩小文件夹标题的字体，并让“解散”按钮更紧凑 */
+    /* 6. 缩小文件夹标题的字体，并让“解散”按钮更紧凑 (保留) */
     .theme-category-title {
         padding: 6px 5px;
         font-size: 0.9em; /* 稍微缩小字体 */
@@ -175,22 +190,13 @@
         padding: 0 4px;
     }
 
-    /* 5. 如果空间实在太紧张，我们可以考虑隐藏原生按钮，或者让它们变得更小 */
+    /* 7. 让原生按钮在手机上更紧凑 (保留) */
     #native-buttons-container .menu_button {
-        padding: 5px; /* 减小原生按钮的内边距 */
-        font-size: 0.8em; /* 如果原生按钮有文字，可以缩小文字 */
+        padding: 5px;
     }
 
     #native-buttons-container .menu_button i {
-        font-size: 1em; /* 确保图标不会变得太小 */
-    }
-    
-    /* 【核心修复】防止长文本在手机上竖向排列 */
-    .theme-item-name {
-        white-space: nowrap;      /* 强制不换行 */
-        overflow: hidden;         /* 隐藏超出的部分 */
-        text-overflow: ellipsis;  /* 显示省略号 */
-        flex-shrink: 1;           /* 允许该元素在空间不足时收缩 */
+        font-size: 1em;
     }
 }
 

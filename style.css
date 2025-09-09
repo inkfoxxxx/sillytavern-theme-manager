@@ -1,6 +1,11 @@
 /* 主题仪表盘 (v17.0 最终布局突破版) 样式 */
 
-#theme-manager-panel { background-color: var(--blur-tint-color); border-radius: 8px; padding: 10px; margin-top: 10px; border: 1px solid var(--border-color); max-width: 500px; width: 100%; box-sizing: border-box; }
+#theme-manager-panel { background-color: var(--blur-tint-color); border-radius: 8px; padding: 10px; margin-top: 10px; border: 1px solid var(--border-color); width: 100%; box-sizing: border-box; }
+/* 【核心修复】让我们的插件在父容器中拥有更高的布局优先级 */
+#theme-manager-panel {
+    flex-basis: 100% !important; /* 强制它在 Flex 布局中占据 100% 的基础宽度 */
+    max-width: none !important;    /* 移除任何可能的最大宽度限制 */
+}
 #theme-manager-header { cursor: pointer; padding: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
 #theme-manager-header:hover { background-color: rgba(0,0,0,0.1); }
 #theme-manager-header h4 { margin: 0; border: none; padding: 0; color: var(--main-text-color); }
@@ -18,14 +23,14 @@
 .theme-category-title { font-weight: bold; color: var(--quote-color); cursor: pointer; padding: 8px 5px; background-color: rgba(0,0,0,0.15); border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
 .dissolve-folder-btn { background: none; border: none; color: var(--danger-color, #ff5555); cursor: pointer; font-size: 14px; opacity: 0.7; }
 .theme-list { padding-left: 0; margin-top: 5px; }
-.theme-item { padding: 8px; border-radius: 4px; list-style: none; color: var(--main-text-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 2px solid transparent; transition: background-color 0.2s, border-color 0.2s; }
+.theme-item { display: flex; flex-wrap: nowrap; /* 【核心修复】默认情况下，我们强制不换行 */ align-items: center; padding: 8px; border-radius: 4px; list-style: none; color: var(--main-text-color); justify-content: space-between; cursor: pointer; border: 2px solid transparent; transition: background-color 0.2s, border-color 0.2s; }
 .theme-item:hover { background-color: rgba(128,128,128,0.2); }
 .theme-item.active { border-color: var(--quote-color); background-color: color-mix(in srgb, var(--quote-color) 20%, transparent); font-weight: bold; }
 .theme-item.selected-for-batch { background-color: var(--primary-color, #0056b3); color: white; }
 .theme-item.active.selected-for-batch { box-shadow: 0 0 0 2px var(--quote-color); }
-.theme-item-name { flex-grow: 1; }
+.theme-item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; }
 .batch-edit-mode .theme-item-buttons { display: none; }
-.theme-item-buttons { display: flex; gap: 5px; }
+.theme-item-buttons { display: flex; gap: 5px; flex-shrink: 0; /* 确保按钮组不会被压缩 */ }
 .theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--main-text-color); }
 .theme-item-buttons button:hover { opacity: 1; transform: scale(1.2); }
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
@@ -41,16 +46,19 @@
         width: 100%;
         max-width: none;
     }
-    .theme-item {
-        flex-wrap: wrap; 
-        padding: 8px;
+     .theme-item {
+        flex-wrap: wrap; /* 只在移动端，才允许智能换行 */
     }
+
     .theme-item-name {
-        flex-grow: 1;
-        min-width: 100px;
-        padding-right: 10px;
+        white-space: normal; /* 恢复正常的文本换行能力 */
+        overflow: visible;
+        text-overflow: clip;
+        min-width: 150px;
     }
+
     .theme-item-buttons {
-        flex-shrink: 0;
+        margin-left: auto; /* 当换行时，自动靠右 */
     }
 }
+

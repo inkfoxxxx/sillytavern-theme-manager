@@ -1,4 +1,4 @@
- (function () {
+(function () {
     'use strict';
 
     const initInterval = setInterval(() => {
@@ -7,7 +7,7 @@
         const saveAsButton = document.querySelector('#ui-preset-save-button');
 
         if (originalSelect && updateButton && saveAsButton && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v18.0 Final Star Polished): 初始化...");
+            console.log("Theme Manager (v16.0 Batch Import): 初始化...");
             clearInterval(initInterval);
 
             try {
@@ -63,7 +63,7 @@
                 managerPanel.id = 'theme-manager-panel';
                 managerPanel.innerHTML = `
                     <div id="theme-manager-header">
-                        <h4>🎨 主题管理</h4>
+                        <h4>🎨 主题美化管理</h4>
                         <div id="native-buttons-container"></div>
                         <div id="theme-manager-toggle-icon" class="fa-solid fa-chevron-down"></div>
                     </div>
@@ -72,6 +72,7 @@
                             <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
                             <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>
                             <button id="batch-edit-btn" title="进入/退出批量编辑模式">🔧 批量编辑</button>
+                            <button id="batch-import-btn" title="从文件批量导入主题">📂 批量导入</button>
                         </div>
                         <div id="batch-actions-bar">
                             <button id="batch-add-tag-btn">➕ 添加标签</button>
@@ -95,6 +96,14 @@
                 const contentWrapper = managerPanel.querySelector('.theme-content');
                 const searchBox = managerPanel.querySelector('#theme-search-box');
                 const randomBtn = managerPanel.querySelector('#random-theme-btn');
+                const batchImportBtn = managerPanel.querySelector('#batch-import-btn');
+
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.multiple = true;
+                fileInput.accept = '.json';
+                fileInput.style.display = 'none';
+                document.body.appendChild(fileInput);
 
                 let favorites = JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
                 let allThemeObjects = [];
@@ -178,11 +187,8 @@
                                 const item = document.createElement('li');
                                 item.className = 'theme-item';
                                 item.dataset.value = theme.value;
-    
-                               // 【核心修改】直接用字符来决定星星的样式
                                 const isFavorited = favorites.includes(theme.value);
                                 const starCharacter = isFavorited ? '★' : '☆';
-
                                 item.innerHTML = `
                                     <span class="theme-item-name">${theme.display}</span>
                                     <div class="theme-item-buttons">
@@ -190,8 +196,6 @@
                                         <button class="rename-btn" title="重命名">✏️</button>
                                         <button class="delete-btn" title="删除">🗑️</button>
                                     </div>`;
-    
-    
                                 list.appendChild(item);
                             });
 
@@ -278,17 +282,54 @@
                     }
                 });
 
+                batchImportBtn.addEventListener('click', () => {
+                    fileInput.click();
+                });
+
+                fileInput.addEventListener('change', async (event) => {
+                    const files = event.target.files;
+                    if (!files.length) return;
+
+                    showLoader();
+                    let successCount = 0;
+                    let errorCount = 0;
+
+                    for (const file of files) {
+                        try {
+                            const fileContent = await file.text();
+                            const themeObject = JSON.parse(fileContent);
+
+                            if (themeObject && themeObject.name && typeof themeObject.main_text_color !== 'undefined') {
+                                await saveTheme(themeObject);
+                                manualUpdateOriginalSelect('add', null, themeObject.name);
+                                successCount++;
+                            } else {
+                                console.warn(`文件 "${file.name}" 不是一个有效的主题文件，已跳过。`);
+                                errorCount++;
+                            }
+                        } catch (err) {
+                            console.error(`处理文件 "${file.name}" 时出错:`, err);
+                            errorCount++;
+                        }
+                    }
+
+                    hideLoader();
+                    toastr.success(`批量导入完成！成功 ${successCount} 个，失败 ${errorCount} 个。`);
+                    
+                    event.target.value = ''; 
+                });
+
                 document.querySelector('#batch-add-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
                     const newTag = prompt('请输入要添加的新标签（文件夹名）：');
                     if (newTag && newTag.trim()) {
                         await performBatchRename(oldName => `[${newTag.trim()}] ${oldName}`);
-                        toastr.success(`已为选中主题添加标签（文件夹名） "[${newTag.trim()}]"`);
+                        toastr.success(`已为选中主题添加标签 "[${newTag.trim()}]"并自动分类`);
                     }
                 });
                 document.querySelector('#batch-move-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
-                    const targetTag = prompt('请输入要移动到的目标分类（文件夹）：');
+                    const targetTag = prompt('请输入要移动到的目标分类（文件夹名）：');
                     if (targetTag && targetTag.trim()) {
                          await performBatchRename(oldName => `[${targetTag.trim()}] ${oldName.replace(/\[.*?\]/g, '').trim()}`);
                          toastr.success(`已将选中主题移动到分类 "[${targetTag.trim()}]"`);
@@ -296,7 +337,7 @@
                 });
                 document.querySelector('#batch-delete-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
-                    const tagToRemove = prompt('请输入要移除的标签（文件夹名）（等同于将所选主题移出该文件夹）：');
+                    const tagToRemove = prompt('请输入要移除的标签（等同于将所选美化从以该标签命名的文件夹移出）：');
                     if (tagToRemove && tagToRemove.trim()) {
                         await performBatchRename(oldName => oldName.replace(`[${tagToRemove.trim()}]`, '').trim());
                         toastr.success(`已从选中主题移除标签 "[${tagToRemove.trim()}]"`);
@@ -304,14 +345,12 @@
                 });
                 document.querySelector('#batch-delete-btn').addEventListener('click', performBatchDelete);
 
-                // 事件监听器
                 contentWrapper.addEventListener('click', async (event) => {
                     const target = event.target;
                     const button = target.closest('button');
                     const themeItem = target.closest('.theme-item');
                     const categoryTitle = target.closest('.theme-category-title');
 
-                    // 第一步：处理文件夹标题的点击
                     if (categoryTitle) {
                         if (button && button.classList.contains('dissolve-folder-btn')) {
                             event.stopPropagation();
@@ -333,15 +372,13 @@
                             const list = categoryTitle.nextElementSibling;
                             if (list) list.style.display = (list.style.display === 'none') ? 'block' : 'none';
                         }
-                        return; // 处理完文件夹相关操作后，直接结束
+                        return;
                     }
 
-                    // 如果点击的不是主题项，也直接结束
                     if (!themeItem) return;
 
                     const themeName = themeItem.dataset.value;
 
-                    // 第二步：根据是否处于批量编辑模式，来处理主题项的点击
                     if (isBatchEditMode) {
                         if (selectedForBatch.has(themeName)) {
                             selectedForBatch.delete(themeName);
@@ -350,19 +387,17 @@
                             selectedForBatch.add(themeName);
                             themeItem.classList.add('selected-for-batch');
                         }
-                    } 
-                    else { // 非批量编辑模式
+                    } else {
                         if (button && button.classList.contains('favorite-btn')) {
-                            // 这是我们要替换的核心逻辑
                             if (favorites.includes(themeName)) {
                                 favorites = favorites.filter(f => f !== themeName);
-                                button.textContent = '☆'; // 变为空心
+                                button.textContent = '☆';
                             } else {
                                 favorites.push(themeName);
-                                button.textContent = '★'; // 变为实心
+                                button.textContent = '★';
                             }
                             localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-                            await buildThemeUI(); // 重绘以更新收藏夹
+                            await buildThemeUI();
                         }
                         else if (button && button.classList.contains('rename-btn')) {
                             const oldName = themeName;
@@ -382,13 +417,13 @@
                                 toastr.success(`主题 "${themeItem.querySelector('.theme-item-name').textContent}" 已删除！`);
                                 manualUpdateOriginalSelect('delete', themeName);
                             }
-                        } 
-                        else { // 如果点击的不是按钮，那就是主题项本身
+                        } else {
                             originalSelect.value = themeName;
                             originalSelect.dispatchEvent(new Event('change'));
                         }
                     }
                 });
+
                 originalSelect.addEventListener('change', updateActiveState);
 
                 const observer = new MutationObserver((mutations) => {
@@ -416,5 +451,3 @@
         }
     }, 250);
 })();
-
-

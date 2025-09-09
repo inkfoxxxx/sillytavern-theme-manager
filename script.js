@@ -3,14 +3,17 @@
 
     const initInterval = setInterval(() => {
         const originalSelect = document.querySelector('#themes');
+        const updateButton = document.querySelector('#ui-preset-update-button');
+        const saveAsButton = document.querySelector('#ui-preset-save-button');
 
-        if (originalSelect && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v12.0 Final Perfected): 初始化...");
+        if (originalSelect && updateButton && saveAsButton && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
+            console.log("Theme Manager (v14.0 Final Integrated): 初始化...");
             clearInterval(initInterval);
 
             try {
                 const { getRequestHeaders, showLoader, hideLoader } = SillyTavern.getContext();
                 const FAVORITES_KEY = 'themeManager_favorites';
+                const COLLAPSE_KEY = 'themeManager_collapsed';
 
                 async function apiRequest(endpoint, method = 'POST', body = {}) {
                     try {
@@ -54,28 +57,39 @@
 
                 const originalContainer = originalSelect.parentElement;
                 if (!originalContainer) return;
-                originalSelect.style.position = 'absolute';
-                originalSelect.style.opacity = '0';
-                originalSelect.style.pointerEvents = 'none';
+                originalSelect.style.display = 'none';
 
                 const managerPanel = document.createElement('div');
                 managerPanel.id = 'theme-manager-panel';
                 managerPanel.innerHTML = `
-                    <h4><span>🎨 主题仪表盘 (完美修复版)</span></h4>
-                    <div class="theme-manager-actions">
-                        <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
-                        <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>
-                        <button id="batch-edit-btn" title="进入/退出批量编辑模式">🔧 批量编辑</button>
+                    <div id="theme-manager-header">
+                        <h4>🎨 主题仪表盘</h4>
+                        <div id="native-buttons-container"></div>
+                        <div id="theme-manager-toggle-icon" class="fa-solid fa-chevron-down"></div>
                     </div>
-                    <div id="batch-actions-bar">
-                        <button id="batch-add-tag-btn">➕ 添加标签</button>
-                        <button id="batch-move-tag-btn">➡️ 移动到分类</button>
-                        <button id="batch-delete-tag-btn">❌ 移除标签</button>
-                        <button id="batch-delete-btn">🗑️ 删除选中</button>
-                    </div>
-                    <div class="theme-content"></div>`;
+                    <div id="theme-manager-content">
+                        <div class="theme-manager-actions">
+                            <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
+                            <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>
+                            <button id="batch-edit-btn" title="进入/退出批量编辑模式">🔧 批量编辑</button>
+                        </div>
+                        <div id="batch-actions-bar">
+                            <button id="batch-add-tag-btn">➕ 添加标签</button>
+                            <button id="batch-move-tag-btn">➡️ 移动到分类</button>
+                            <button id="batch-delete-tag-btn">❌ 移除标签</button>
+                            <button id="batch-delete-btn">🗑️ 删除选中</button>
+                        </div>
+                        <div class="theme-content"></div>
+                    </div>`;
                 originalContainer.prepend(managerPanel);
 
+                const nativeButtonsContainer = managerPanel.querySelector('#native-buttons-container');
+                nativeButtonsContainer.appendChild(updateButton);
+                nativeButtonsContainer.appendChild(saveAsButton);
+
+                const header = managerPanel.querySelector('#theme-manager-header');
+                const content = managerPanel.querySelector('#theme-manager-content');
+                const toggleIcon = managerPanel.querySelector('#theme-manager-toggle-icon');
                 const batchEditBtn = managerPanel.querySelector('#batch-edit-btn');
                 const batchActionsBar = managerPanel.querySelector('#batch-actions-bar');
                 const contentWrapper = managerPanel.querySelector('.theme-content');
@@ -86,6 +100,36 @@
                 let allThemeObjects = [];
                 let isBatchEditMode = false;
                 let selectedForBatch = new Set();
+
+                function setCollapsed(isCollapsed, animate = false) {
+                    if (isCollapsed) {
+                        if (animate) {
+                            content.style.maxHeight = content.scrollHeight + 'px';
+                            requestAnimationFrame(() => {
+                                content.style.maxHeight = '0px';
+                                content.style.paddingTop = '0px';
+                                content.style.paddingBottom = '0px';
+                            });
+                        } else {
+                            content.style.maxHeight = '0px';
+                            content.style.paddingTop = '0px';
+                            content.style.paddingBottom = '0px';
+                        }
+                        toggleIcon.classList.add('collapsed');
+                        localStorage.setItem(COLLAPSE_KEY, 'true');
+                    } else {
+                        content.style.paddingTop = '';
+                        content.style.paddingBottom = '';
+                        if (animate) {
+                            content.style.maxHeight = content.scrollHeight + 'px';
+                            setTimeout(() => { content.style.maxHeight = ''; }, 300); // 移除maxHeight以允许内容自适应
+                        } else {
+                            content.style.maxHeight = '';
+                        }
+                        toggleIcon.classList.remove('collapsed');
+                        localStorage.setItem(COLLAPSE_KEY, 'false');
+                    }
+                }
 
                 async function buildThemeUI() {
                     const scrollTop = contentWrapper.scrollTop;
@@ -104,7 +148,7 @@
                             while ((match = tagRegex.exec(themeName)) !== null) {
                                 if (match[1].trim()) tags.push(match[1].trim());
                             }
-                            displayName = themeName.replace(/\[.*?\]/g, '').trim();
+                            displayName = themeName.replace(/\[.*?\]/g, '').trim() || themeName;
                             if (tags.length === 0) tags.push('未分类');
                             return { value: themeName, display: displayName, tags: tags };
                         }).filter(Boolean);
@@ -188,6 +232,11 @@
                     toastr.success('批量删除完成！');
                 }
 
+                header.addEventListener('click', (e) => {
+                    if (e.target.closest('#native-buttons-container')) return;
+                    setCollapsed(content.style.maxHeight !== '0px', true);
+                });
+
                 searchBox.addEventListener('input', (e) => {
                     const searchTerm = e.target.value.toLowerCase();
                     managerPanel.querySelectorAll('.theme-item').forEach(item => {
@@ -207,7 +256,7 @@
 
                 batchEditBtn.addEventListener('click', () => {
                     isBatchEditMode = !isBatchEditMode;
-                    contentWrapper.classList.toggle('batch-edit-mode', isBatchEditMode);
+                    managerPanel.classList.toggle('batch-edit-mode', isBatchEditMode);
                     batchActionsBar.classList.toggle('visible', isBatchEditMode);
                     batchEditBtn.classList.toggle('selected', isBatchEditMode);
                     batchEditBtn.textContent = isBatchEditMode ? '退出批量编辑' : '🔧 批量编辑';
@@ -216,49 +265,42 @@
                     managerPanel.querySelectorAll('.selected-for-batch').forEach(item => item.classList.remove('selected-for-batch'));
                 });
 
-
                 document.querySelector('#batch-add-tag-btn').addEventListener('click', async () => {
-                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; } // 把检查移到最前面
+                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
                     const newTag = prompt('请输入要添加的新标签：');
                     if (newTag && newTag.trim()) {
                         await performBatchRename(oldName => `[${newTag.trim()}] ${oldName}`);
                         toastr.success(`已为选中主题添加标签 "[${newTag.trim()}]"`);
                     }
                 });
-
                 document.querySelector('#batch-move-tag-btn').addEventListener('click', async () => {
-                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; } // 把检查移到最前面
+                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
                     const targetTag = prompt('请输入要移动到的目标分类：');
                     if (targetTag && targetTag.trim()) {
                         await performBatchRename(oldName => `[${targetTag.trim()}] ${oldName.replace(/\[.*?\]/g, '').trim()}`);
                         toastr.success(`已将选中主题移动到分类 "[${targetTag.trim()}]"`);
                     }
-               });
-
+                });
                 document.querySelector('#batch-delete-tag-btn').addEventListener('click', async () => {
-                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; } // 把检查移到最前面
+                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
                     const tagToRemove = prompt('请输入要移除的标签：');
                     if (tagToRemove && tagToRemove.trim()) {
                         await performBatchRename(oldName => oldName.replace(`[${tagToRemove.trim()}]`, '').trim());
                         toastr.success(`已从选中主题移除标签 "[${tagToRemove.trim()}]"`);
                     }
-               });
+                });
                 document.querySelector('#batch-delete-btn').addEventListener('click', performBatchDelete);
 
-                // 这是新的、修复后的代码
                 contentWrapper.addEventListener('click', async (event) => {
                     const target = event.target;
                     const themeItem = target.closest('.theme-item');
                     const categoryTitle = target.closest('.theme-category-title');
 
-                    // 【核心修复】第一步：无论在哪种模式下，都优先处理文件夹标题的点击
                     if (categoryTitle) {
-                        // 如果点击的是解散按钮，单独处理，不触发折叠
                         if (target.matches('.dissolve-folder-btn')) {
                             event.stopPropagation();
                             const categoryName = categoryTitle.closest('.theme-category').dataset.categoryName;
                             if (!confirm(`确定要解散文件夹 "${categoryName}" 吗？`)) return;
-                            // ... (后续解散逻辑保持不变)
                             const themesToUpdate = Array.from(originalSelect.options).map(opt => opt.value).filter(name => name.includes(`[${categoryName}]`));
                             showLoader();
                             for (const oldName of themesToUpdate) {
@@ -271,22 +313,17 @@
                             }
                             hideLoader();
                             toastr.success(`文件夹 "${categoryName}" 已解散！`);
-                            return; // 处理完解散后，直接结束
+                            return;
                         }
-        
-                        // 如果不是解散按钮，就执行折叠操作
                         const list = categoryTitle.nextElementSibling;
                         if (list) list.style.display = (list.style.display === 'none') ? 'block' : 'none';
-                        return; // 处理完折叠后，直接结束，避免干扰后续逻辑
+                        return;
                     }
 
-                    // 第二步：根据是否处于批量编辑模式，来处理主题项的点击
                     if (isBatchEditMode && themeItem) {
                         const checkbox = themeItem.querySelector('.theme-item-checkbox');
                         if (checkbox && !target.matches('input[type="checkbox"]')) checkbox.click();
-                    } 
-                    else if (!isBatchEditMode && themeItem) {
-                   // 非编辑模式下的按钮点击逻辑 (收藏、重命名、删除、应用主题)
+                    } else if (!isBatchEditMode && themeItem) {
                         if (target.matches('.theme-item-name')) {
                             originalSelect.value = themeItem.dataset.value;
                             originalSelect.dispatchEvent(new Event('change'));
@@ -305,7 +342,6 @@
                                 if (!themeObject) return;
                                 await saveTheme({ ...themeObject, name: newName });
                                 await deleteTheme(oldName);
-
                                 toastr.success(`主题已重命名为 "${newName}"！`);
                                 manualUpdateOriginalSelect('rename', oldName, newName);
                             }
@@ -350,7 +386,10 @@
                 });
                 observer.observe(originalSelect, { childList: true, subtree: true, characterData: true });
 
-                buildThemeUI();
+                const isInitiallyCollapsed = localStorage.getItem(COLLAPSE_KEY) === 'true';
+                buildThemeUI().then(() => {
+                    setCollapsed(isInitiallyCollapsed, false);
+                });
 
             } catch (error) {
                 console.error("Theme Manager: 初始化过程中发生错误:", error);
@@ -358,5 +397,3 @@
         }
     }, 250);
 })();
-
-

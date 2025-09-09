@@ -7,7 +7,7 @@
         const saveAsButton = document.querySelector('#ui-preset-save-button');
 
         if (originalSelect && updateButton && saveAsButton && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v19.0 Final State Sync): 初始化...");
+            console.log("Theme Manager (v20.0 Final Memory Sync): 初始化...");
             clearInterval(initInterval);
 
             try {
@@ -231,6 +231,7 @@
                             manualUpdateOriginalSelect('rename', oldName, newName);
                         }
                     }
+                    await reloadThemes();
                     selectedForBatch.clear();
                     hideLoader();
                 }
@@ -249,6 +250,7 @@
                             originalSelect.dispatchEvent(new Event('change'));
                         }
                     }
+                    await reloadThemes();
                     selectedForBatch.clear();
                     hideLoader();
                     toastr.success('批量删除完成！');
@@ -375,6 +377,7 @@
                                 await deleteTheme(oldName);
                                 manualUpdateOriginalSelect('rename', oldName, newName);
                             }
+                            await reloadThemes();
                             hideLoader();
                             toastr.success(`文件夹 "${categoryName}" 已解散！`);
                         } else {
@@ -418,6 +421,7 @@
                                 await deleteTheme(oldName);
                                 toastr.success(`主题已重命名为 "${newName}"！`);
                                 manualUpdateOriginalSelect('rename', oldName, newName);
+                                await reloadThemes();
                             }
                         }
                         else if (button && button.classList.contains('delete-btn')) {
@@ -426,6 +430,7 @@
                                 await deleteTheme(themeName);
                                 toastr.success(`主题 "${themeItem.querySelector('.theme-item-name').textContent}" 已删除！`);
                                 manualUpdateOriginalSelect('delete', themeName);
+                                await reloadThemes();
                                 if (isCurrentlyActive) {
                                     const azureOption = originalSelect.querySelector('option[value="Azure"]');
                                     originalSelect.value = azureOption ? 'Azure' : (originalSelect.options[0]?.value || '');

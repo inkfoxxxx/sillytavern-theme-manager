@@ -126,7 +126,17 @@
 .theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--main-text-color); }
 .theme-item-buttons button:hover { opacity: 1; transform: scale(1.2); }
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
-.favorite-btn.is-favorite { opacity: 1; color: var(--favorite-color, #ffeb3b); }
+/* 【核心修改】 */
+/* 1. 为所有收藏按钮（无论空心实心）设置一个基础颜色 */
+.favorite-btn {
+    color: var(--favorite-color, #ffeb3b);
+}
+
+/* 2. 只有被收藏的，才显示为实心星星 */
+.favorite-btn.is-favorite { 
+    opacity: 1; 
+}
 
 .theme-item-checkbox { display: none; margin-right: 10px; }
 .batch-edit-mode .theme-item-checkbox { display: inline-block; }
+

@@ -1,6 +1,5 @@
-/* 主题仪表盘 (v20.0 最终布局完美版) 样式 */
+/* 主题仪表盘 (v21.0 最终布局完美版) 样式 */
 
-/* 【核心精修】合并重复的规则，让代码更清晰 */
 #theme-manager-panel { 
     background-color: var(--blur-tint-color); 
     border-radius: 8px; 
@@ -29,9 +28,15 @@
 #native-buttons-container { display: flex; gap: 5px; margin-left: auto; }
 .theme-category-title { font-weight: bold; color: var(--quote-color); cursor: pointer; padding: 8px 5px; background-color: rgba(0,0,0,0.15); border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
 .dissolve-folder-btn { background: none; border: none; color: var(--danger-color, #ff5555); cursor: pointer; font-size: 14px; opacity: 0.7; }
-.theme-list { padding-left: 0; margin-top: 5px; }
 
-/* 【核心精修】这是桌面端和移动端通用的基础样式 */
+/* 【核心修复】强制列表（ul）和列表项（li）的宽度都撑满其父容器 */
+.theme-list { 
+    padding-left: 0; 
+    margin-top: 5px; 
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .theme-item {
     width: 100%;
     box-sizing: border-box;
@@ -64,7 +69,7 @@
 .theme-item-buttons { 
     display: flex; 
     gap: 5px; 
-    flex-shrink: 0; /* 【核心精修】确保按钮组在任何情况下都不会被压缩变形 */
+    flex-shrink: 0;
 }
 
 .theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--main-text-color); }

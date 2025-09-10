@@ -84,25 +84,28 @@
 /* == 移动端响应式设计 (手机版样式) == */
 /* =================================== */
 @media (max-width: 768px) {
-    #theme-manager-panel {
-        width: 100%;
-        max-width: none;
-    }
-
-    /* 【核心修复】在移动端，我们将 Grid 布局改回传统的块级布局，实现自动换行 */
     .theme-item {
-        display: block; /* 恢复为块级元素，让每个子元素都独占一行 */
+        /* 【核心修复】确保在flex布局换行时，项目本身仍然占据100%的宽度 */
+        width: 100%;
+        box-sizing: border-box; /* 确保 padding 不会影响总宽度 */
+        flex-wrap: wrap; 
+        /* 【新增】将主轴对齐方式改为从头开始，因为间距现在由子元素控制 */
+        justify-content: flex-start;
     }
 
     .theme-item-name {
-        white-space: normal; /* 允许名字正常换行 */
+        white-space: normal; /* 在手机上允许名字换行 */
         overflow: visible;
         text-overflow: clip;
-        margin-bottom: 8px; /* 在名字和下面的按钮之间增加一点间距 */
+        min-width: 0;
+        /* 【新增】确保名字部分可以生长以占据可用空间 */
+        flex-grow: 1;
     }
 
     .theme-item-buttons {
-        display: flex; /* 让按钮本身还是横向排列 */
-        justify-content: flex-end; /* 强制按钮组靠右对齐 */
+        /* 【保持】这个属性是关键，它会自动将按钮推到右侧 */
+        margin-left: auto; 
+        /* 【新增】确保按钮在flex布局中不会被压缩 */
+        flex-shrink: 0;
     }
 }

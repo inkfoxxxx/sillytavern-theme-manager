@@ -181,7 +181,6 @@
 
                             const list = document.createElement('ul');
                             list.className = 'theme-list';
-                            list.style.display = 'block';
 
                             themesInCategory.forEach(theme => {
                                 const item = document.createElement('li');
@@ -517,7 +516,6 @@
             }
         }, 1000); // 每秒检查一次目标容器是否存在
     })();
-})();
-})();
+
 
 

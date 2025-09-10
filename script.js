@@ -7,7 +7,7 @@
         const saveAsButton = document.querySelector('#ui-preset-save-button');
 
         if (originalSelect && updateButton && saveAsButton && window.SillyTavern?.getContext && !document.querySelector('#theme-manager-panel')) {
-            console.log("Theme Manager (v20.0 Smart Collapse): 初始化...");
+            console.log("Theme Manager (v21.0 Batch Dissolve): 初始化...");
             clearInterval(initInterval);
 
             try {
@@ -15,9 +15,8 @@
                 const FAVORITES_KEY = 'themeManager_favorites';
                 const COLLAPSE_KEY = 'themeManager_collapsed';
 
-                // 【新增】用于在刷新后保持特定分类打开的状态管理
                 let openCategoriesAfterRefresh = new Set();
-                let allParsedThemes = []; // 【新增】将主题列表提升为模块级变量，以便于在各函数中访问
+                let allParsedThemes = []; 
 
                 async function apiRequest(endpoint, method = 'POST', body = {}) {
                     try {
@@ -59,7 +58,6 @@
                     }
                 }
                 
-                // 【新增】辅助函数：从主题名解析出标签/分类
                 function getTagsFromThemeName(themeName) {
                     const tags = [];
                     const tagRegex = /\[(.*?)\]/g;
@@ -71,7 +69,6 @@
                     return tags;
                 }
 
-                // 【新增】辅助函数：根据主题名集合获取所有相关分类
                 function getCategoriesForThemes(themeNamesSet) {
                     const categories = new Set();
                     themeNamesSet.forEach(themeName => {
@@ -106,6 +103,7 @@
                             <button id="batch-add-tag-btn">➕ 添加标签</button>
                             <button id="batch-move-tag-btn">➡️ 移动到分类</button>
                             <button id="batch-delete-tag-btn">❌ 移除标签</button>
+                            <button id="batch-dissolve-btn">🗂️ 解散选中文件夹</button> 
                             <button id="batch-delete-btn">🗑️ 删除选中</button>
                         </div>
                         <div class="theme-content"></div>
@@ -137,6 +135,7 @@
                 let allThemeObjects = [];
                 let isBatchEditMode = false;
                 let selectedForBatch = new Set();
+                let selectedFoldersForBatch = new Set(); // 【新增】用于存储批量选中的文件夹
 
                 function setCollapsed(isCollapsed, animate = false) {
                     if (isCollapsed) {
@@ -175,7 +174,6 @@
                         allThemeObjects = await getAllThemesFromAPI();
                         contentWrapper.innerHTML = '';
 
-                        // 【修改】填充模块级变量
                         allParsedThemes = Array.from(originalSelect.options).map(option => {
                             const themeName = option.value;
                             if (!themeName) return null;
@@ -196,19 +194,25 @@
                             categoryDiv.dataset.categoryName = category;
                             const title = document.createElement('div');
                             title.className = 'theme-category-title';
-                            title.innerHTML = `<span>${category}</span>`;
+                            
+                            // 【修改】为文件夹标题添加复选框
+                            let titleHTML = '';
                             if (category !== '未分类' && category !== '⭐ 收藏夹') {
-                                title.innerHTML += `<button class="dissolve-folder-btn" title="解散此文件夹">解散</button>`;
+                                titleHTML += `<input type="checkbox" class="folder-select-checkbox" title="选择文件夹进行批量操作">`;
                             }
+                            titleHTML += `<span>${category}</span>`;
+                            if (category !== '未分类' && category !== '⭐ 收藏夹') {
+                                titleHTML += `<button class="dissolve-folder-btn" title="解散此文件夹">解散</button>`;
+                            }
+                            title.innerHTML = titleHTML;
 
                             const list = document.createElement('ul');
                             list.className = 'theme-list';
                             
-                            // 【核心修改】根据 openCategoriesAfterRefresh 集合的状态决定文件夹是否默认打开
                             if (openCategoriesAfterRefresh.size > 0 && !openCategoriesAfterRefresh.has(category)) {
-                                list.style.display = 'none'; // 如果不是被操作的文件夹，则默认折叠
+                                list.style.display = 'none';
                             } else {
-                                list.style.display = 'block'; // 如果是被操作的文件夹，或正常加载，则默认打开
+                                list.style.display = 'block';
                             }
 
                             themesInCategory.forEach(theme => {
@@ -234,13 +238,11 @@
                         
                         contentWrapper.scrollTop = scrollTop;
                         updateActiveState();
-                        
-                        // 【新增】刷新UI后，清空状态，以便下一次用户手动折叠/展开
                         openCategoriesAfterRefresh.clear();
 
                     } catch (err) {
                         contentWrapper.innerHTML = '加载主题失败，请检查浏览器控制台获取更多信息。';
-                        openCategoriesAfterRefresh.clear(); // 即使失败也要清空
+                        openCategoriesAfterRefresh.clear();
                     }
                 }
 
@@ -303,7 +305,6 @@
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
                     if (!confirm(`确定要删除选中的 ${selectedForBatch.size} 个主题吗？`)) return;
                     
-                    // 【新增】在执行操作前记录相关分类
                     getCategoriesForThemes(selectedForBatch).forEach(cat => openCategoriesAfterRefresh.add(cat));
 
                     showLoader();
@@ -321,6 +322,56 @@
                     hideLoader();
                     toastr.success('批量删除完成！');
                 }
+
+                // 【新增】批量解散文件夹的逻辑
+                async function performBatchDissolve() {
+                    if (selectedFoldersForBatch.size === 0) {
+                        toastr.info('请先选择至少一个文件夹。');
+                        return;
+                    }
+                    if (!confirm(`确定要解散选中的 ${selectedFoldersForBatch.size} 个文件夹吗？其中的所有主题将被移至“未分类”。`)) {
+                        return;
+                    }
+
+                    showLoader();
+                    let successCount = 0;
+                    let errorCount = 0;
+                    const themesToProcess = new Map();
+
+                    // 收集所有需要处理的主题
+                    selectedFoldersForBatch.forEach(folderName => {
+                        openCategoriesAfterRefresh.add(folderName);
+                        allParsedThemes.forEach(theme => {
+                            if (theme.tags.includes(folderName)) {
+                                const newName = theme.value.replace(`[${folderName}]`, '').trim();
+                                themesToProcess.set(theme.value, newName);
+                            }
+                        });
+                    });
+                    openCategoriesAfterRefresh.add('未分类');
+
+                    for (const [oldName, newName] of themesToProcess.entries()) {
+                        try {
+                            const themeObject = allThemeObjects.find(t => t.name === oldName);
+                            if (themeObject) {
+                                await saveTheme({ ...themeObject, name: newName });
+                                await deleteTheme(oldName);
+                                manualUpdateOriginalSelect('rename', oldName, newName);
+                                successCount++;
+                            }
+                        } catch(error) {
+                            console.error(`解散文件夹时处理主题 "${oldName}" 失败:`, error);
+                            errorCount++;
+                        }
+    
+                    }
+                    
+                    hideLoader();
+                    selectedFoldersForBatch.clear();
+                    toastr.success(`批量解散完成！成功处理 ${successCount} 个主题，失败 ${errorCount} 个。`);
+                    buildThemeUI();
+                }
+
 
                 header.addEventListener('click', (e) => {
                     if (e.target.closest('#native-buttons-container')) return;
@@ -352,6 +403,7 @@
                     batchEditBtn.textContent = isBatchEditMode ? '退出批量编辑' : '🔧 批量编辑';
                     if (!isBatchEditMode) {
                         selectedForBatch.clear();
+                        selectedFoldersForBatch.clear(); // 【新增】退出时清空文件夹选择
                         managerPanel.querySelectorAll('.selected-for-batch').forEach(item => item.classList.remove('selected-for-batch'));
                     }
                 });
@@ -433,17 +485,34 @@
                     if (tagToRemove && tagToRemove.trim()) {
                         getCategoriesForThemes(selectedForBatch).forEach(cat => openCategoriesAfterRefresh.add(cat));
                         openCategoriesAfterRefresh.add(tagToRemove.trim());
-                        openCategoriesAfterRefresh.add('未分类'); // Items might move to Uncategorized
+                        openCategoriesAfterRefresh.add('未分类');
                         await performBatchRename(oldName => oldName.replace(`[${tagToRemove.trim()}]`, '').trim());
                     }
                 });
                 document.querySelector('#batch-delete-btn').addEventListener('click', performBatchDelete);
+                document.querySelector('#batch-dissolve-btn').addEventListener('click', performBatchDissolve); // 【新增】绑定新按钮事件
 
                 contentWrapper.addEventListener('click', async (event) => {
                     const target = event.target;
                     const button = target.closest('button');
                     const themeItem = target.closest('.theme-item');
                     const categoryTitle = target.closest('.theme-category-title');
+                    const folderCheckbox = target.closest('.folder-select-checkbox'); // 【新增】
+
+                    // 【新增】处理文件夹复选框点击事件
+                    if (isBatchEditMode && folderCheckbox) {
+                        event.stopPropagation();
+                        const titleElement = folderCheckbox.closest('.theme-category-title');
+                        const categoryName = titleElement.parentElement.dataset.categoryName;
+                        if (folderCheckbox.checked) {
+                            selectedFoldersForBatch.add(categoryName);
+                            titleElement.classList.add('selected-for-batch');
+                        } else {
+                            selectedFoldersForBatch.delete(categoryName);
+                            titleElement.classList.remove('selected-for-batch');
+                        }
+                        return;
+                    }
 
                     if (categoryTitle) {
                         if (button && button.classList.contains('dissolve-folder-btn')) {

@@ -83,29 +83,6 @@
 .theme-item-checkbox { display: none; margin-right: 10px; }
 .batch-edit-mode .theme-item-checkbox { display: inline-block; }
 
-/* 【新增】批量编辑模式下的文件夹复选框样式 */
-.folder-select-checkbox {
-    display: none; /* 默认隐藏 */
-    margin-right: 8px;
-    vertical-align: middle; /* 使其与文字对齐 */
-}
-
-/* 仅在批量编辑模式下显示复选框 */
-.batch-edit-mode .folder-select-checkbox {
-    display: inline-block;
-}
-
-/* 【新增】文件夹标题被选中时的样式 */
-.theme-category-title.selected-for-batch {
-    background-color: var(--primary-color, #0056b3);
-    color: white;
-}
-
-/* 确保选中时，标题内的文字和按钮颜色也是白色，以便阅读 */
-.theme-category-title.selected-for-batch span,
-.theme-category-title.selected-for-batch .dissolve-folder-btn {
-    color: white;
-}
 
 /* =================================== */
 /* == 移动端响应式设计 (手机版样式) == */
@@ -136,5 +113,6 @@
         flex-shrink: 0;
     }
 }
+
 
 

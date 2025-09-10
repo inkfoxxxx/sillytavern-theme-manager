@@ -468,55 +468,42 @@
     // 【核心新增】自动刷新“侦探”模块
     // 这个模块独立于我们的主插件逻辑之外，负责监听整个SillyTavern的更新事件
     (function autoReloader() {
-        // 【主要修改】将目标ID从 'installed_extensions_container' 改为正确的 'rm_extensions_block'
-        // 'rm_extensions_block' 是SillyTavern中实际包含所有扩展UI的容器
         const targetNodeId = 'rm_extensions_block'; 
         let observer = null;
 
-        // “侦探”的具体任务
         const callback = function(mutationsList, observer) {
             for(const mutation of mutationsList) {
-                // 我们只关心DOM结构的变化（比如一个“更新成功”的提示被添加进来）
                 if (mutation.type === 'childList') {
-                    // 我们不需要知道具体是什么变化，只要有变化，就说明可能发生了更新
-                    // 为了避免过于频繁的刷新，我们加一个小小的延迟
                     console.log('Theme Manager Auto-Reloader: 检测到扩展列表发生变化，准备自动刷新...');
-                    
-                    // 先断开监听，避免在刷新前触发更多次
                     observer.disconnect(); 
-
-                    // 延迟 1 秒后刷新，给 SillyTavern 一点时间完成它的UI更新
                     setTimeout(() => {
                         toastr.info('检测到扩展更新，页面将自动刷新！', '自动刷新');
                         setTimeout(() => {
                             location.reload();
-                        }, 1500); // 再延迟1.5秒，让用户能看到提示
+                        }, 1500);
                     }, 1000);
-                    
-                    // 因为页面马上要刷新了，所以不需要重新连接监听器
                     return; 
                 }
             }
         };
 
-        // 等待目标容器出现，然后再开始监听
+        // 等待目标容器出现
         const observerInterval = setInterval(() => {
             const targetNode = document.getElementById(targetNodeId);
             if (targetNode) {
                 clearInterval(observerInterval);
                 
-                // 创建并配置我们的“侦探”
-                observer = new MutationObserver(callback);
-                // 我们需要监听子元素列表的变化（childList）以及所有后代节点的变化（subtree）
-                const config = { childList: true, subtree: true };
-
-                // 开始监听！
-                observer.observe(targetNode, config);
-                console.log('Theme Manager Auto-Reloader: 已开始监听扩展更新事件。');
+                // 【关键修复】设置一个“冷静期”（Grace Period）
+                // 等待 3 秒，确保 SillyTavern 的初始UI渲染完全完成，避免误触发。
+                console.log('Theme Manager Auto-Reloader: 目标容器已找到，进入3秒冷静期...');
+                setTimeout(() => {
+                    observer = new MutationObserver(callback);
+                    const config = { childList: true, subtree: true };
+                    observer.observe(targetNode, config);
+                    console.log('Theme Manager Auto-Reloader: 已开始监听扩展更新事件。');
+                }, 3000); // 3秒的延迟足够应对绝大多数情况
             }
-        }, 1000); // 每秒检查一次目标容器是否存在
-    })();
+        }, 1000);
+    })(); // 这个括号是 autoReloader 函数的结尾
 
-
-
-
+})(); // 【关键修复】这个括号是整个插件文件的结尾，必须有且只有一个

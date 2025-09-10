@@ -465,8 +465,8 @@
             }
         }
     }, 250);
-    // 【核心新增】自动刷新“侦探”模块
-    // 这个模块独立于我们的主插件逻辑之外，负责监听整个SillyTavern的更新事件
+    // 【核心新增】自动刷新“侦探”模块 (已修改为“手动刷新提示”模式)
+    // 这个模块现在只负责监听更新事件，并弹出一个提示框，不再自动刷新页面。
     (function autoReloader() {
         const targetNodeId = 'rm_extensions_block'; 
         let observer = null;
@@ -474,36 +474,47 @@
         const callback = function(mutationsList, observer) {
             for(const mutation of mutationsList) {
                 if (mutation.type === 'childList') {
-                    console.log('Theme Manager Auto-Reloader: 检测到扩展列表发生变化，准备自动刷新...');
+                    console.log('Theme Manager Auto-Reloader: 检测到扩展列表发生变化，提示用户刷新...');
+                    
+                    // 断开监听，避免因弹出提示框等行为被重复触发
                     observer.disconnect(); 
+
+                    // 【核心修改】移除所有 location.reload() 代码，只保留提示框
                     setTimeout(() => {
-                        toastr.info('检测到扩展更新，页面将自动刷新！', '自动刷新');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    }, 1000);
+                        // 使用 timeOut: 0 和 extendedTimeOut: 0 使提示框永久显示，直到用户手动关闭
+                        toastr.info(
+                            '一个或多个扩展已更新。为确保所有功能正常应用，请手动刷新页面。', 
+                            '扩展更新完成', 
+                            { 
+                                timeOut: 0, 
+                                extendedTimeOut: 0, 
+                                closeButton: true,
+                                preventDuplicates: true // 防止意外情况下弹出多个提示
+                            }
+                        );
+                    }, 1000); // 延迟1秒确保SillyTavern本身的UI更新完成
+                    
                     return; 
                 }
             }
         };
 
-        // 等待目标容器出现
+        // 同样等待目标容器出现
         const observerInterval = setInterval(() => {
             const targetNode = document.getElementById(targetNodeId);
             if (targetNode) {
                 clearInterval(observerInterval);
                 
-                // 【关键修复】设置一个“冷静期”（Grace Period）
-                // 等待 3 秒，确保 SillyTavern 的初始UI渲染完全完成，避免误触发。
+                // 同样保留3秒“冷静期”，防止页面加载时误触发
                 console.log('Theme Manager Auto-Reloader: 目标容器已找到，进入3秒冷静期...');
                 setTimeout(() => {
                     observer = new MutationObserver(callback);
                     const config = { childList: true, subtree: true };
                     observer.observe(targetNode, config);
-                    console.log('Theme Manager Auto-Reloader: 已开始监听扩展更新事件。');
-                }, 3000); // 3秒的延迟足够应对绝大多数情况
+                    console.log('Theme Manager Auto-Reloader: 已开始监听扩展更新事件 (手动刷新提示模式)。');
+                }, 3000);
             }
         }, 1000);
-    })(); // 这个括号是 autoReloader 函数的结尾
+    })(); // 这是 autoReloader 函数的结尾括号
 
-})(); // 【关键修复】这个括号是整个插件文件的结尾，必须有且只有一个
+})(); // 这是整个插件文件的结尾括号

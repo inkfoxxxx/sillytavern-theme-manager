@@ -216,22 +216,66 @@
                     });
                 }
 
+                // 【已修改】为批量重命名/移动操作增加了完整的错误处理和用户反馈
                 async function performBatchRename(renameLogic) {
-                    if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
+                    if (selectedForBatch.size === 0) {
+                        toastr.info('请先选择至少一个主题。');
+                        return;
+                    }
                     showLoader();
+                    
+                    let successCount = 0;
+                    let errorCount = 0;
+                    let skippedCount = 0;
+
+                    // 在开始循环前，先获取最新的主题列表，用于冲突检查
+                    const currentThemes = await getAllThemesFromAPI();
+
                     for (const oldName of selectedForBatch) {
-                        const themeObject = allThemeObjects.find(t => t.name === oldName);
-                        if (!themeObject) continue;
-                        const newName = renameLogic(oldName);
-                        if (newName !== oldName) {
-                            const newThemeObject = { ...themeObject, name: newName };
-                            await saveTheme(newThemeObject);
-                            await deleteTheme(oldName);
-                            manualUpdateOriginalSelect('rename', oldName, newName);
+                        try {
+                            // 使用最新的主题列表来查找对象
+                            const themeObject = currentThemes.find(t => t.name === oldName);
+                            if (!themeObject) {
+                                console.warn(`批量操作：在API返回中未找到主题 "${oldName}"，已跳过。`);
+                                skippedCount++;
+                                continue;
+                            }
+
+                            const newName = renameLogic(oldName);
+                            
+                            // 【核心修复1】检查新名称是否已存在，避免命名冲突
+                            if (currentThemes.some(t => t.name === newName && t.name !== oldName)) {
+                                console.warn(`批量操作：目标名称 "${newName}" 已存在，已跳过 "${oldName}"。`);
+                                toastr.warning(`主题 "${newName}" 已存在，跳过重命名。`);
+                                skippedCount++;
+                                continue;
+                            }
+
+                            if (newName !== oldName) {
+                                const newThemeObject = { ...themeObject, name: newName };
+                                await saveTheme(newThemeObject);
+                                await deleteTheme(oldName);
+                                manualUpdateOriginalSelect('rename', oldName, newName);
+                            }
+                            successCount++;
+                        } catch (error) {
+                            // 【核心修复2】捕获单个主题操作的错误，使循环能继续
+                            console.error(`批量重命名主题 "${oldName}" 时失败:`, error);
+                            toastr.error(`处理主题 "${oldName}" 时失败: ${error.message}`);
+                            errorCount++;
                         }
                     }
-                    selectedForBatch.clear();
+
+                    // 【核心修复3】确保 hideLoader 总是在所有操作结束后执行
                     hideLoader();
+                    selectedForBatch.clear();
+                    
+                    // 提供一个总结性的反馈
+                    let summary = `批量操作完成！成功 ${successCount} 个`;
+                    if (errorCount > 0) summary += `，失败 ${errorCount} 个`;
+                    if (skippedCount > 0) summary += `，跳过 ${skippedCount} 个`;
+                    summary += '。';
+                    toastr.success(summary);
                 }
 
                 async function performBatchDelete() {
@@ -332,23 +376,35 @@
                     const newTag = prompt('请输入要添加的新标签（文件夹名）：');
                     if (newTag && newTag.trim()) {
                         await performBatchRename(oldName => `[${newTag.trim()}] ${oldName}`);
-                        toastr.success(`已为选中主题添加标签 "[${newTag.trim()}]"`);
                     }
                 });
+
+                // 【已修改】增加了对非法文件名的过滤，从源头避免API错误
                 document.querySelector('#batch-move-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
                     const targetTag = prompt('请输入要移动到的目标分类（文件夹名）：');
+                    
                     if (targetTag && targetTag.trim()) {
-                         await performBatchRename(oldName => `[${targetTag.trim()}] ${oldName.replace(/\[.*?\]/g, '').trim()}`);
-                         toastr.success(`已将选中主题移动到分类 "[${targetTag.trim()}]"`);
+                        // 【核心修复4】过滤掉文件名中的非法字符
+                        const sanitizedTag = targetTag.trim().replace(/[\\/:*?"<>|]/g, '');
+                        if (sanitizedTag !== targetTag.trim()) {
+                            toastr.warning(`分类名包含非法字符，已自动过滤为: "${sanitizedTag}"`);
+                        }
+                        
+                        if (!sanitizedTag) {
+                            toastr.error('过滤后的分类名为空，操作已取消。');
+                            return;
+                        }
+
+                        await performBatchRename(oldName => `[${sanitizedTag}] ${oldName.replace(/\[.*?\]/g, '').trim()}`);
                     }
                 });
+
                 document.querySelector('#batch-delete-tag-btn').addEventListener('click', async () => {
                     if (selectedForBatch.size === 0) { toastr.info('请先选择至少一个主题。'); return; }
                     const tagToRemove = prompt('请输入要移除的标签（等同于将所选美化从以该标签命名的文件夹移出）：');
                     if (tagToRemove && tagToRemove.trim()) {
                         await performBatchRename(oldName => oldName.replace(`[${tagToRemove.trim()}]`, '').trim());
-                        toastr.success(`已从选中主题移除标签 "[${tagToRemove.trim()}]"`);
                     }
                 });
                 document.querySelector('#batch-delete-btn').addEventListener('click', performBatchDelete);
@@ -465,5 +521,4 @@
             }
         }
     }, 250);
-})(); // 这是整个插件文件的结尾括号
-
+})();

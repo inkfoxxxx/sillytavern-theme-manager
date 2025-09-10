@@ -469,8 +469,9 @@
     // 【核心新增】自动刷新“侦探”模块
     // 这个模块独立于我们的主插件逻辑之外，负责监听整个SillyTavern的更新事件
     (function autoReloader() {
-        // 我们的目标是“扩展”页面里的“已安装”列表
-        const targetNodeId = 'installed_extensions_container';
+        // 【主要修改】将目标ID从 'installed_extensions_container' 改为正确的 'rm_extensions_block'
+        // 'rm_extensions_block' 是SillyTavern中实际包含所有扩展UI的容器
+        const targetNodeId = 'rm_extensions_block'; 
         let observer = null;
 
         // “侦探”的具体任务
@@ -499,7 +500,7 @@
             }
         };
 
-        // 等待“已安装”列表出现，然后再开始监听
+        // 等待目标容器出现，然后再开始监听
         const observerInterval = setInterval(() => {
             const targetNode = document.getElementById(targetNodeId);
             if (targetNode) {
@@ -507,13 +508,16 @@
                 
                 // 创建并配置我们的“侦探”
                 observer = new MutationObserver(callback);
+                // 我们需要监听子元素列表的变化（childList）以及所有后代节点的变化（subtree）
                 const config = { childList: true, subtree: true };
 
                 // 开始监听！
                 observer.observe(targetNode, config);
                 console.log('Theme Manager Auto-Reloader: 已开始监听扩展更新事件。');
             }
-        }, 1000); // 每秒检查一次“已安装”列表是否存在
+        }, 1000); // 每秒检查一次目标容器是否存在
     })();
 })();
+})();
+
 

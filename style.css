@@ -31,34 +31,37 @@
 
 /* 【核心修复】强制列表（ul）和列表项（li）的宽度都撑满其父容器 */
 .theme-list { 
+    display: flex; /* 新增：使用 flex 布局可以更好地控制子元素 */
+    flex-direction: column; /* 新增：让列表项垂直排列 */
+    gap: 2px; /* 新增：在列表项之间添加一点间距，可选 */
     padding-left: 0; 
     margin-top: 5px; 
     width: 100%;
     box-sizing: border-box;
 }
 
-/* 【核心修复】我们将在这里对 .theme-item 进行终极改造 */
-.theme-item {
+/* 【核心修复】使用更具体的选择器来提高优先级，确保宽度设置生效 */
+.theme-list > .theme-item {
+    width: 100%;
+    box-sizing: border-box;
     padding: 8px; 
     border-radius: 4px; 
     list-style: none; 
     color: var(--main-text-color); 
-    
-    display: grid; /* 使用 Grid 布局！ */
-    grid-template-columns: 1fr auto; /* 定义两列：第一列占据所有剩余空间，第二列自适应内容 */
-    gap: 10px; /* 在名字和按钮之间设置一个固定的间距 */
+    display: flex; 
+    justify-content: space-between; 
     align-items: center; 
-    
     cursor: pointer; 
     border: 2px solid transparent; 
     transition: background-color 0.2s, border-color 0.2s; 
 }
 
 .theme-item-name {
-    /* 在 Grid 布局下，我们不再需要 flex-grow */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-grow: 1;
+    padding-right: 10px;
 }
 
 .theme-item:hover { background-color: rgba(128,128,128,0.2); }
@@ -109,3 +112,4 @@
         flex-shrink: 0;
     }
 }
+

@@ -1,6 +1,6 @@
 {
   "name": "Theme Manager",
-  "display_name": "美化管理助手",
+  "display_name": "美化管理助手-调试专用",
   "author": "inkfoxxxx",
   "version": "1.0.1",
   "description": "一个功能齐全的主题管理器，支持分类、搜索、收藏、重命名和批量管理、导入。",
@@ -8,6 +8,7 @@
   "js": "script.js",
   "css": "style.css"
 }
+
 
 
 

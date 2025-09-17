@@ -11,12 +11,13 @@
             clearInterval(initInterval);
 
             try {
-                const { getRequestHeaders, showLoader, hideLoader } = SillyTavern.getContext();
+                const { getRequestHeaders, showLoader, hideLoader, callGenericPopup } = SillyTavern.getContext();
                 const FAVORITES_KEY = 'themeManager_favorites';
                 const COLLAPSE_KEY = 'themeManager_collapsed';
                 const CATEGORY_ORDER_KEY = 'themeManager_categoryOrder';
                 const COLLAPSED_FOLDERS_KEY = 'themeManager_collapsedFolders';
                 const THEME_BACKGROUND_BINDINGS_KEY = 'themeManager_backgroundBindings';
+                const CHARACTER_THEME_BINDINGS_KEY = 'themeManager_characterThemeBindings';
 
                 let allParsedThemes = [];
                 let refreshNeeded = false;
@@ -48,22 +49,15 @@
                 async function deleteTheme(themeName) { await apiRequest('themes/delete', 'POST', { name: themeName }); }
                 async function saveTheme(themeObject) { await apiRequest('themes/save', 'POST', themeObject); }
 
-                // ### 最终解决方案 v6：使用正确的 JSON 键名 'bg' ###
                 async function deleteBackground(bgFile) {
-                    // 构建一个包含文件名的JavaScript对象，使用正确的键名 'bg'
-                    const body = {
-                        bg: bgFile // 这就是那个折磨了我们很久的秘密
-                    };
-
+                    const body = { bg: bgFile };
                     const headers = getRequestHeaders();
-
                     try {
                         const response = await fetch('/api/backgrounds/delete', {
                             method: 'POST',
                             headers: headers,
-                            body: JSON.stringify(body) // 将对象转换为JSON字符串
+                            body: JSON.stringify(body)
                         });
-
                         if (!response.ok) {
                             const responseText = await response.text();
                             throw new Error(responseText || `HTTP error! status: ${response.status}`);
@@ -73,7 +67,6 @@
                         throw error;
                     }
                 }
-                // ### 解决方案结束 ###
 
                 async function uploadBackground(formData) {
                     const headers = getRequestHeaders();
@@ -429,9 +422,7 @@
                     let errorCount = 0;
                     let skippedCount = 0;
                     const currentThemes = await getAllThemesFromAPI();
-                    // ===== 新增代码：在循环外加载一次收藏夹数组 =====
                     let favoritesToUpdate = JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
-                    // =================================================
 
                     for (const oldName of selectedForBatch) {
                         try {
@@ -454,12 +445,10 @@
                                 await deleteTheme(oldName);
                                 manualUpdateOriginalSelect('rename', oldName, newName);
 
-                                // ===== 新增代码：检查并更新收藏夹 =====
                                 const favIndex = favoritesToUpdate.indexOf(oldName);
                                 if (favIndex > -1) {
                                     favoritesToUpdate[favIndex] = newName;
                                 }
-                                // =========================================
 
                                 if (themeBackgroundBindings[oldName]) {
                                     themeBackgroundBindings[newName] = themeBackgroundBindings[oldName];
@@ -473,9 +462,7 @@
                             errorCount++;
                         }
                     }
-                    // ===== 新增代码：在循环结束后，保存更新后的收藏夹 =====
                     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favoritesToUpdate));
-                    // =====================================================
                     localStorage.setItem(THEME_BACKGROUND_BINDINGS_KEY, JSON.stringify(themeBackgroundBindings));
 
                     hideLoader();
@@ -566,6 +553,10 @@
                     buildThemeUI();
                 }
 
+
+                // ===============================================
+                // =========== 事件监听器 (EVENT LISTENERS) ===========
+                // ===============================================
 
                 header.addEventListener('click', (e) => {
                     if (e.target.closest('#native-buttons-container')) return;
@@ -744,28 +735,16 @@
                     
                     showRefreshNotification();
 
-                    document.querySelector('#site_logo').click();
-                    setTimeout(() => {
-                        document.querySelector('#site_logo').click();
-                        setTimeout(() => {
-                            if (isManageBgMode) {
-                                renderBackgroundManagerUI();
-                            }
-                            const userSettingsPanel = document.querySelector('#user-settings-block');
-                            if (userSettingsPanel && userSettingsPanel.classList.contains('closedDrawer')) {
-                                document.querySelector('#user-settings-button .drawer-toggle').click();
-                            }
-                        }, 150);
-                    }, 500);
-                
-                    event.target.value = '';
+                    if (isManageBgMode) {
+                        setTimeout(() => renderBackgroundManagerUI(), 100);
+                    }
                 });
 
                 batchImportBgBtn.addEventListener('click', () => {
                     bgFileInput.click();
                 });
                 
-                                batchDeleteBgBtn.addEventListener('click', async () => {
+                batchDeleteBgBtn.addEventListener('click', async () => {
                     if (selectedBackgrounds.size === 0) {
                         toastr.info('请先选择至少一个背景图。');
                         return;
@@ -802,12 +781,8 @@
                     selectedBackgrounds.clear();
                     showRefreshNotification();
                     
-                    // ### 核心修改 ###
-                    // 删除了所有 document.querySelector('#site_logo').click(); 的代码
-                    // 并在短暂延迟后直接调用函数重新渲染背景列表，让页面停留在当前插件面板
                     if (isManageBgMode) {
-                        // 使用一个短暂的延迟确保DOM更新完成
-                        setTimeout(() => renderBackgroundManagerUI(), 100); 
+                        setTimeout(() => renderBackgroundManagerUI(), 100);
                     }
                 });
                 
@@ -880,6 +855,7 @@
                             if (newFolderName && newFolderName.trim() && newFolderName !== oldFolderName) {
                                 showLoader();
                                 const themesToRename = allParsedThemes.filter(t => t.tags.includes(oldFolderName));
+                                let favoritesToUpdate = JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
                                 for (const theme of themesToRename) {
                                     const oldName = theme.value;
                                     const newName = oldName.replace(`[${oldFolderName}]`, `[${newFolderName.trim()}]`);
@@ -888,12 +864,17 @@
                                         await saveTheme({ ...themeObject, name: newName });
                                         await deleteTheme(oldName);
                                         manualUpdateOriginalSelect('rename', oldName, newName);
+                                        const favIndex = favoritesToUpdate.indexOf(oldName);
+                                        if (favIndex > -1) {
+                                            favoritesToUpdate[favIndex] = newName;
+                                        }
                                         if (themeBackgroundBindings[oldName]) {
                                             themeBackgroundBindings[newName] = themeBackgroundBindings[oldName];
                                             delete themeBackgroundBindings[oldName];
                                         }
                                     }
                                 }
+                                localStorage.setItem(FAVORITES_KEY, JSON.stringify(favoritesToUpdate));
                                 localStorage.setItem(THEME_BACKGROUND_BINDINGS_KEY, JSON.stringify(themeBackgroundBindings));
                                 hideLoader();
                                 toastr.success(`文件夹 "${oldFolderName}" 已重命名为 "${newFolderName.trim()}"`);
@@ -940,21 +921,17 @@
                                 await deleteTheme(oldName);
                                 manualUpdateOriginalSelect('rename', oldName, newName);
 
-                                // ===== 新增代码：检查并更新收藏夹 =====
                                 const favIndex = favorites.indexOf(oldName);
                                 if (favIndex > -1) {
                                     favorites[favIndex] = newName;
                                 }
-                                // =========================================
 
                                 if (themeBackgroundBindings[oldName]) {
                                     themeBackgroundBindings[newName] = themeBackgroundBindings[oldName];
                                     delete themeBackgroundBindings[oldName];
                                 }
                             }
-                            // ===== 新增代码：循环外保存 =====
                             localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-                            // =========================================
                             localStorage.setItem(THEME_BACKGROUND_BINDINGS_KEY, JSON.stringify(themeBackgroundBindings));
                             hideLoader();
                             toastr.success(`文件夹 "${categoryName}" 已解散！`);
@@ -1033,13 +1010,11 @@
                                 await deleteTheme(oldName);
                                 manualUpdateOriginalSelect('rename', oldName, newName);
 
-                                // ===== 新增代码：检查并更新收藏夹 =====
                                 const favIndex = favorites.indexOf(oldName);
                                 if (favIndex > -1) {
                                     favorites[favIndex] = newName;
                                     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
                                 }
-                                // =========================================
 
                                 if (themeBackgroundBindings[oldName]) {
                                     themeBackgroundBindings[newName] = themeBackgroundBindings[oldName];
@@ -1132,7 +1107,131 @@
                 if (bgMenuContent) bgMenuContent.addEventListener('click', bgObserverCallback, true);
                 if (bgCustomContent) bgCustomContent.addEventListener('click', bgObserverCallback, true);
 
+                // ==========================================================
+                // ========= 新增功能：角色卡绑定美化 (Character Theme Binding) =========
+                // ==========================================================
+
+                // 绑定主题按钮的点击事件
+                document.body.addEventListener('click', async (event) => {
+                    if (event.target.id !== 'link-theme-btn') return;
+
+                    const chid = document.querySelector('#rm_ch_create_block #avatar_url_pole')?.value;
+                    if (!chid) {
+                        toastr.warning('请先选择一个角色。');
+                        return;
+                    }
+
+                    let bindings = JSON.parse(localStorage.getItem(CHARACTER_THEME_BINDINGS_KEY)) || {};
+                    const currentBinding = bindings[chid] || '';
+                    let selectedValue = currentBinding;
+
+                    const popupContent = document.createElement('div');
+                    popupContent.innerHTML = `<h4>为角色绑定美化</h4><p>选择一个美化主题，在下次加载此角色时将自动应用。</p>`;
+
+                    const select = document.createElement('select');
+                    select.id = 'theme-binding-select';
+                    select.className = 'text_pole';
+
+                    const noBindingOption = document.createElement('option');
+                    noBindingOption.value = '';
+                    noBindingOption.textContent = '— 无绑定 —';
+                    select.appendChild(noBindingOption);
+
+                    document.querySelectorAll('#themes option').forEach(option => {
+                        if (option.value) {
+                            const newOption = option.cloneNode(true);
+                            select.appendChild(newOption);
+                        }
+                    });
+
+                    select.value = currentBinding;
+                    popupContent.appendChild(select);
+                    
+                    await callGenericPopup(popupContent, 'confirm', null, {
+                        okButton: '保存',
+                        cancelButton: '取消',
+                        wide: true,
+                        onOpen: (popup) => {
+                            const dialogElement = popup.dlg;
+                            const selectElement = dialogElement.querySelector('#theme-binding-select');
+                            const okButton = dialogElement.querySelector('.popup-button-ok');
+                            const cancelButton = dialogElement.querySelector('.popup-button-cancel');
+
+                            // ### 核心修改：使用 setTimeout 确保DOM已准备好 ###
+                            setTimeout(() => {
+                                $(selectElement).select2({
+                                    dropdownParent: $(dialogElement),
+                                    width: '100%',
+                                    placeholder: '搜索或选择一个美化...'
+                                }).on('change', (e) => {
+                                    selectedValue = $(e.target).val();
+                                });
+                            }, 0); // 延迟0毫秒即可
+
+                            okButton.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                const newBinding = selectedValue;
+                                if (newBinding) {
+                                    bindings[chid] = newBinding;
+                                    toastr.success(`已将角色绑定到美化：<b>${newBinding}</b>`, '', { escapeHtml: false });
+                                } else {
+                                    delete bindings[chid];
+                                    toastr.info('已取消此角色的美化绑定。');
+                                }
+                                localStorage.setItem(CHARACTER_THEME_BINDINGS_KEY, JSON.stringify(bindings));
+                                cancelButton.click();
+                            });
+                        }
+                    });
+                });
+
+                // 监听角色卡片的点击事件以自动应用美化
+                document.getElementById('right-nav-panel').addEventListener('click', (event) => {
+                    const characterBlock = event.target.closest('.character_select');
+                    if (!characterBlock) return;
+                    
+                    setTimeout(() => {
+                        const chid = characterBlock.dataset.chid;
+                        const character = SillyTavern.getContext().characters[chid];
+
+                        if (!character || !character.avatar) return;
+
+                        const bindings = JSON.parse(localStorage.getItem(CHARACTER_THEME_BINDINGS_KEY)) || {};
+                        const boundTheme = bindings[character.avatar];
+
+                        if (boundTheme) {
+                            const themeSelect = document.querySelector('#themes');
+                            const themeOption = themeSelect.querySelector(`option[value="${boundTheme}"]`);
+
+                            if (themeOption && themeSelect.value !== boundTheme) {
+                                console.log(`[Theme Manager] Applying bound theme via click: ${boundTheme}`);
+                                themeSelect.value = boundTheme;
+                                themeSelect.dispatchEvent(new Event('change'));
+                                toastr.info(`已自动应用角色绑定的美化：<b>${boundTheme}</b>`, '', {timeOut: 2000, escapeHtml: false});
+                            }
+                        }
+                    }, 50);
+                });
+
+                // ==========================================================
+                // ======================= 功能结束 =========================
+                // ==========================================================
+
+
                 buildThemeUI().then(() => {
+                    // 动态添加“绑定主题”按钮
+                    const controlsInterval = setInterval(() => {
+                        const controlsContainer = document.querySelector('#avatar_controls .form_create_bottom_buttons_block');
+                        if (controlsContainer && !document.querySelector('#link-theme-btn')) {
+                            clearInterval(controlsInterval);
+                            const linkButton = document.createElement('div');
+                            linkButton.id = 'link-theme-btn';
+                            linkButton.className = 'menu_button fa-solid fa-link';
+                            linkButton.title = '为此角色绑定一个主题';
+                            linkButton.setAttribute('data-i18n', '[title]为此角色绑定一个主题');
+                            controlsContainer.appendChild(linkButton);
+                        }
+                    }, 500);
                     const isInitiallyCollapsed = localStorage.getItem(COLLAPSE_KEY) !== 'false';
                     setCollapsed(isInitiallyCollapsed, false);
                 });

@@ -1157,16 +1157,16 @@
                             const okButton = dialogElement.querySelector('.popup-button-ok');
                             const cancelButton = dialogElement.querySelector('.popup-button-cancel');
 
-                            // ### 核心修改：使用 setTimeout 确保DOM已准备好 ###
+                            // ### 最终核心修复：移除 placeholder ###
                             setTimeout(() => {
                                 $(selectElement).select2({
                                     dropdownParent: $(dialogElement),
-                                    width: '100%',
-                                    placeholder: '搜索或选择一个美化...'
+                                    width: '100%'
+                                    // placeholder 选项已被移除
                                 }).on('change', (e) => {
                                     selectedValue = $(e.target).val();
                                 });
-                            }, 0); // 延迟0毫秒即可
+                            }, 0);
 
                             okButton.addEventListener('click', (e) => {
                                 e.preventDefault();
@@ -1191,8 +1191,10 @@
                     if (!characterBlock) return;
                     
                     setTimeout(() => {
+                        // 使用 SillyTavern.getContext() 来安全地访问全局变量
+                        const characters = SillyTavern.getContext().characters;
                         const chid = characterBlock.dataset.chid;
-                        const character = SillyTavern.getContext().characters[chid];
+                        const character = characters[chid];
 
                         if (!character || !character.avatar) return;
 

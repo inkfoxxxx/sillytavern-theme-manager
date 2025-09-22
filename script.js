@@ -133,6 +133,8 @@
                             <button id="expand-all-btn" title="展开所有文件夹">全部展开</button>
                             <button id="collapse-all-btn" title="折叠所有文件夹">全部折叠</button>
                             <button id="manage-bgs-btn" title="管理背景图">🖼️ 管理背景</button>
+                            <button id="tm-export-settings-btn" title="导出一个包含所有插件设置的配置文件，用于在不同设备间同步。">📤 导出配置</button>
+                            <button id="tm-import-settings-btn" title="从配置文件中导入插件设置。">📥 导入配置</button>
                         </div>
                         <div id="background-actions-bar" style="display:none;" data-mode="bg">
                             <button id="batch-import-bg-btn" class="menu_button menu_button_icon">➕ 批量导入背景</button>
@@ -194,6 +196,14 @@
                 bgFileInput.accept = 'image/*,video/*';
                 bgFileInput.style.display = 'none';
                 document.body.appendChild(bgFileInput);
+
+                // VVVVVVVVVVVV 新增代码 VVVVVVVVVVVV -->
+                const settingsFileInput = document.createElement('input');
+                settingsFileInput.type = 'file';
+                settingsFileInput.accept = '.json';
+                settingsFileInput.style.display = 'none';
+                document.body.appendChild(settingsFileInput);
+                // ^^^^^^^^^^^^ 新增代码 ^^^^^^^^^^^^ -->
 
                 let favorites = JSON.parse(localStorage.getItem(FAVORITES_KEY)) || [];
                 let allThemeObjects = [];
@@ -557,6 +567,93 @@
                 // ===============================================
                 // =========== 事件监听器 (EVENT LISTENERS) ===========
                 // ===============================================
+
+                // VVVVVVVVVVVV 新增代码 VVVVVVVVVVVV -->
+
+                // ---------- 导入/导出插件配置 ----------
+
+                const settingsKeysToSync = [
+                    FAVORITES_KEY,
+                    COLLAPSE_KEY,
+                    CATEGORY_ORDER_KEY,
+                    COLLAPSED_FOLDERS_KEY,
+                    THEME_BACKGROUND_BINDINGS_KEY,
+                    CHARACTER_THEME_BINDINGS_KEY,
+                ];
+
+                function exportSettings() {
+                    const settingsToExport = {};
+                    settingsKeysToSync.forEach(key => {
+                        const value = localStorage.getItem(key);
+                        if (value !== null) {
+                            settingsToExport[key] = value;
+                        }
+                    });
+
+                    const blob = new Blob([JSON.stringify(settingsToExport, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'theme_manager_config.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    toastr.success('配置已成功导出！');
+                }
+
+                async function importSettings(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                     // ### 最终优化的提示信息 ###
+                    const userConfirmed = confirm(
+                        '导入配置前请确认：\n\n' +
+                        '此操作将覆盖您当前的插件设置，包括收藏夹、文件夹顺序和所有绑定关系。\n\n' +
+                        '----------------------------------------------------------\n\n' +
+                        '【重要】对于<本地部署>的用户：\n\n' +
+                        '为确保所有绑定（角色卡、背景图等）都能正常工作，请在导入前，确保您已将源设备上的整个“default-user”文件夹，完整地复制并覆盖到本机对应目录下（若您并未更换设备，仅更换浏览器，可忽略这一步）。\n\n' +
+                        '该文件夹路径为：SillyTavern/data/default-user。\n\n' +
+                        '----------------------------------------------------------\n\n' +
+                        '对于<云端部署>的用户，您可以直接导入。\n\n' +
+                        '是否继续导入配置？'
+                    );
+
+                    if (!userConfirmed) {
+                        event.target.value = ''; // 重置文件输入
+                        return;
+                    }
+
+                    try {
+                        const content = await file.text();
+                        const settingsToImport = JSON.parse(content);
+
+                        let importCount = 0;
+                        for (const key in settingsToImport) {
+                            if (settingsKeysToSync.includes(key)) {
+                                localStorage.setItem(key, settingsToImport[key]);
+                                importCount++;
+                            }
+                        }
+                        
+                        toastr.success(`成功导入 ${importCount} 条配置！请刷新页面以应用所有更改。`, '导入成功');
+                        showRefreshNotification(); // 显示那个“请刷新页面”的横幅提示
+
+                    } catch (error) {
+                        console.error('导入配置失败:', error);
+                        toastr.error(`导入失败，文件可能已损坏或格式不正确。错误: ${error.message}`);
+                    } finally {
+                        event.target.value = ''; // 确保总是重置文件输入
+                    }
+                }
+
+                managerPanel.querySelector('#tm-export-settings-btn').addEventListener('click', exportSettings);
+                managerPanel.querySelector('#tm-import-settings-btn').addEventListener('click', () => settingsFileInput.click());
+                settingsFileInput.addEventListener('change', importSettings);
+                
+                // ---------- 功能结束 ----------
+
+                // ^^^^^^^^^^^^ 新增代码 ^^^^^^^^^^^^ -->
 
                 header.addEventListener('click', (e) => {
                     if (e.target.closest('#native-buttons-container')) return;
@@ -1244,3 +1341,4 @@
         }
     }, 250);
 })();
+

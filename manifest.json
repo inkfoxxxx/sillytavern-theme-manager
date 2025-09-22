@@ -2,12 +2,13 @@
   "name": "Theme Manager",
   "display_name": "美化管理助手",
   "author": "inkfoxxxx",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "一个功能齐全的主题管理器，支持分类、搜索、收藏、重命名、批量管理与导入、背景图绑定、批量导入或删除背景图。",
   "requires": [],
   "js": "script.js",
   "css": "style.css"
 }
+
 
 
 

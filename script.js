@@ -123,18 +123,26 @@
                             <a id="theme-manager-refresh-page-btn" style="color:var(--primary-color, #007bff); text-decoration:underline; cursor:pointer; font-weight:bold;">刷新页面</a>。
                         </div>
                         <div class="theme-manager-actions" data-mode="theme">
-                            <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
-                            <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>
-                            <button id="batch-edit-btn" title="进入/退出批量编辑模式">🔧 批量编辑</button>
-                            <button id="batch-import-btn" title="从文件批量导入主题">📂 批量导入</button>
+                            <div class="tm-button-row">
+                                <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
+                                <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>
+                            </div>
+                            <div class="tm-button-row">
+                                <button id="batch-edit-btn" title="进入/退出批量编辑模式">🔧 批量编辑</button>
+                                <button id="batch-import-btn" title="从文件批量导入主题">📂 批量导入</button>
+                                <button id="manage-bgs-btn" title="管理背景图">🖼️ 管理背景</button>
+                            </div>
                         </div>
                         <div class="theme-manager-actions" data-mode="shared">
-                            <button id="reorder-mode-btn" title="调整文件夹顺序">🔄 调整顺序</button>
-                            <button id="expand-all-btn" title="展开所有文件夹">全部展开</button>
-                            <button id="collapse-all-btn" title="折叠所有文件夹">全部折叠</button>
-                            <button id="manage-bgs-btn" title="管理背景图">🖼️ 管理背景</button>
-                            <button id="tm-export-settings-btn" title="导出一个包含所有插件设置的配置文件，用于在不同设备间同步。">📤 导出配置</button>
-                            <button id="tm-import-settings-btn" title="从配置文件中导入插件设置。">📥 导入配置</button>
+                            <div class="tm-button-row">
+                                <button id="reorder-mode-btn" title="调整文件夹顺序">🔄 调整顺序</button>
+                                <button id="expand-all-btn" title="展开所有文件夹">全部展开</button>
+                                <button id="collapse-all-btn" title="折叠所有文件夹">全部折叠</button>
+                            </div>
+                            <div class="tm-button-row">
+                                <button id="tm-export-settings-btn" title="导出一个包含所有插件设置的配置文件，用于在不同设备间同步。">📤 导出配置</button>
+                                <button id="tm-import-settings-btn" title="从配置文件中导入插件设置。">📥 导入配置</button>
+                            </div>
                         </div>
                         <div id="background-actions-bar" style="display:none;" data-mode="bg">
                             <button id="batch-import-bg-btn" class="menu_button menu_button_icon">➕ 批量导入背景</button>
@@ -228,17 +236,20 @@
                                 content.style.maxHeight = '0px';
                                 content.style.paddingTop = '0px';
                                 content.style.paddingBottom = '0px';
+                                content.style.fontSize = '0';
                             });
                         } else {
                             content.style.maxHeight = '0px';
                             content.style.paddingTop = '0px';
                             content.style.paddingBottom = '0px';
+                            content.style.fontSize = '0';
                         }
                         toggleIcon.classList.add('collapsed');
                         localStorage.setItem(COLLAPSE_KEY, 'true');
                     } else {
                         content.style.paddingTop = '';
                         content.style.paddingBottom = '';
+                        content.style.fontSize = '';
                         if (animate) {
                             content.style.maxHeight = content.scrollHeight + 'px';
                             setTimeout(() => { content.style.maxHeight = ''; }, 300);
@@ -304,7 +315,13 @@
                     });
                 
                     contentWrapper.innerHTML = '';
-                    contentWrapper.appendChild(bgListContainer);
+                    // VVVVVV 在这里添加判断 VVVVVV
+                    if (bgListContainer.children.length === 0) {
+                        contentWrapper.innerHTML = '没有找到背景图。';
+                    } else {
+                        contentWrapper.appendChild(bgListContainer);
+                    }
+                    // ^^^^^^ 判断结束 ^^^^^^
                     contentWrapper.scrollTop = scrollTop;
                     batchDeleteBgBtn.disabled = selectedBackgrounds.size === 0;
                 }
@@ -731,14 +748,29 @@
                     managerPanel.classList.toggle('manage-bg-mode', isManageBgMode);
                     manageBgsBtn.classList.toggle('selected', isManageBgMode);
                     manageBgsBtn.textContent = isManageBgMode ? '完成管理' : '🖼️ 管理背景';
-                
-                    managerPanel.querySelector('[data-mode="theme"]').style.display = isManageBgMode ? 'none' : 'flex';
+
+                    // --- START: 修改这里的逻辑 ---
+                    // 获取所有在 [data-mode="theme"] 容器内的直接子元素（按钮和输入框）
+                    const themeActionsContainer = managerPanel.querySelector('[data-mode="theme"]');
+                    const elementsToToggle = themeActionsContainer.querySelectorAll('.tm-button-row > *');
+
+                    elementsToToggle.forEach(element => {
+                        // 当进入背景管理模式时，隐藏除了“管理背景”按钮之外的所有元素
+                        if (element.id !== 'manage-bgs-btn') {
+                            element.style.display = isManageBgMode ? 'none' : '';
+                        }
+                    });
+                    // --- END: 修改结束 ---
+
                     backgroundActionsBar.style.display = isManageBgMode ? 'flex' : 'none';
-                    
-                    reorderModeBtn.style.display = isManageBgMode ? 'none' : 'inline-block';
-                    expandAllBtn.style.display = isManageBgMode ? 'none' : 'inline-block';
-                    collapseAllBtn.style.display = isManageBgMode ? 'none' : 'inline-block';
-                
+    
+                    // 隐藏/显示 'shared' 区域的按钮
+                    const sharedActionsContainer = managerPanel.querySelector('[data-mode="shared"]');
+                    if(sharedActionsContainer) {
+                        sharedActionsContainer.style.display = isManageBgMode ? 'none' : 'flex';
+                    }
+
+
                     if (isManageBgMode) {
                         if (isBatchEditMode) batchEditBtn.click();
                         if (isReorderMode) reorderModeBtn.click();
@@ -1073,7 +1105,11 @@
                         if (button && button.classList.contains('link-bg-btn')) {
                             isBindingMode = true;
                             themeNameToBind = themeName;
-                            document.querySelector('#logo_block .drawer-toggle').click();
+                            // 尝试点击新版按钮，如果不存在，则点击旧版按钮
+                            const toggleButton = document.querySelector('#backgrounds-drawer-toggle') || document.querySelector('#logo_block .drawer-toggle');
+                            if (toggleButton) {
+                                toggleButton.click();
+                            }
                             toastr.info('请在背景面板中选择一张图片进行绑定。', '进入背景绑定模式');
                             return;
                         }
@@ -1189,7 +1225,11 @@
                     isBindingMode = false;
                     themeNameToBind = null;
                     
-                    document.querySelector('#logo_block .drawer-toggle').click();
+                    // 尝试点击新版按钮，如果不存在，则点击旧版按钮
+                    const toggleButton = document.querySelector('#backgrounds-drawer-toggle') || document.querySelector('#logo_block .drawer-toggle');
+                    if (toggleButton) {
+                        toggleButton.click();
+                    }
 
                     setTimeout(() => {
                         const userSettingsPanel = document.querySelector('#user-settings-block');
@@ -1341,4 +1381,3 @@
         }
     }, 250);
 })();
-

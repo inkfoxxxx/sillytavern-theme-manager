@@ -72,34 +72,56 @@
 .link-bg-btn { color: var(--main-text-color); }
 .link-bg-btn.linked { color: var(--primary-color, #007bff); text-shadow: 0 0 5px var(--primary-color, #007bff); }
 
-#theme-manager-panel.manage-bg-mode .theme-category { display: none; }
-#theme-manager-panel.manage-bg-mode .theme-manager-actions:not(:has(#manage-bgs-btn)) { display: none; }
-#theme-manager-panel .bg_list { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 0; justify-content: center; }
-#theme-manager-panel .bg_example { position: relative; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
-#theme-manager-panel .bg_example:hover { border-color: var(--quote-color); }
-.bg-select-checkbox { position: absolute; top: 5px; left: 5px; width: 20px; height: 20px; z-index: 10; cursor: pointer; }
-#theme-manager-panel .bg_example.selected-for-batch { border-color: var(--primary-color, #007bff); box-shadow: 0 0 8px var(--primary-color, #007bff); }
-
 @media (max-width: 768px) {
     .theme-list > .theme-item { width: 100%; box-sizing: border-box; flex-wrap: wrap; justify-content: flex-start; }
     .theme-item-name { white-space: normal; overflow: visible; text-overflow: clip; min-width: 0; flex-grow: 1; }
     .theme-item-buttons { margin-left: auto; flex-shrink: 0; }
 }
 
-/* 在 style (1).css 文件末尾添加以下内容 */
+/* ======== START: 最终优化样式 ======== */
 
-/* 背景管理模式下的样式 */
-#theme-manager-panel.manage-bg-mode .theme-category { display: none; }
-#theme-manager-panel.manage-bg-mode .theme-manager-actions:not(:has(#manage-bgs-btn)) { display: none; }
+/* --- 插件内部操作按钮重新布局 --- */
+.theme-manager-actions {
+    flex-direction: column; /* 让按钮行垂直排列 */
+    gap: 8px; /* 统一行间距 */
+}
+.tm-button-row {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+}
+/* 第一行：搜索框自适应，按钮固定宽度 */
+.tm-button-row #theme-search-box {
+    flex-grow: 1;
+}
+.tm-button-row #random-theme-btn {
+    flex-grow: 0;
+}
+/* 其他行：按钮平均分配宽度 */
+.tm-button-row button {
+    flex-grow: 1;
+    flex-basis: 0; /* 让flex-grow生效的关键 */
+}
+
+
+/* --- 背景管理模式样式 (已整合优化) --- */
+
+#theme-manager-panel.manage-bg-mode .theme-category,
+#theme-manager-panel.manage-bg-mode .theme-manager-actions:not(:has(#manage-bgs-btn)) { 
+    display: none; 
+}
+
 #theme-manager-panel .bg_list { 
     display: flex; 
     flex-wrap: wrap; 
     gap: 10px; 
     padding: 10px 0; 
-    justify-content: center; 
-    max-height: 50vh;
-    overflow-y: auto;
+    justify-content: center;
+    max-height: 50vh; /* 限制一个最大高度，超出则出现滚动条 */
+    overflow-y: auto; /* 允许垂直滚动 */
+    align-content: flex-start; /* 确保项目从顶部开始排列 */
 }
+
 #theme-manager-panel .bg_example { 
     position: relative; 
     cursor: pointer; 
@@ -107,8 +129,15 @@
     transition: border-color 0.2s; 
     border-radius: 5px;
     overflow: hidden;
+    /* 设置一个合适的尺寸 */
+    width: 120px;
+    height: 67.5px; /* 保持16:9的比例 */
+    flex-shrink: 0; /* 防止在flex布局中被压缩 */
 }
-#theme-manager-panel .bg_example:hover { border-color: var(--quote-color); }
+
+#theme-manager-panel .bg_example:hover { 
+    border-color: var(--quote-color); 
+}
 
 .bg-select-checkbox { 
     position: absolute; 
@@ -118,7 +147,7 @@
     height: 20px; 
     z-index: 10; 
     cursor: pointer; 
-    accent-color: var(--primary-color, #007bff);
+    accent-color: var(--primary-color, #007bff); /* 让复选框的颜色更好看 */
 }
 
 #theme-manager-panel .bg_example.selected-for-batch { 
@@ -126,11 +155,13 @@
     box-shadow: 0 0 8px var(--primary-color, #007bff); 
 }
 
+/* 确保图片和视频能正确填充容器 */
 #theme-manager-panel .bg_example .bg_example_img,
 #theme-manager-panel .bg_example .bg_example_vid {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; /* 这是关键，它能让图片/视频覆盖整个容器而不变形 */
 }
 
+/* ======== END: 最终优化样式 ======== */

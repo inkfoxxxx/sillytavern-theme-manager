@@ -19,6 +19,7 @@
   - 点击“批量编辑”按钮进入编辑模式，此模式下点击美化名字不会更换美化，可以多选，然后进行下一步操作。
   - 一共有五个批量编辑功能，点击后会弹出提示框，根据提示框来操作即可：
     - 某些美化中按钮的字体颜色看不清、多选框看不清的问题暂时没空解决，可以先换个能看清的美化操作，我抽空优化一下。或者根据按钮emoji判断；多选框在文件名最左侧，点对范围也行。
+      
     <img width="492" height="900" alt="image" src="https://github.com/user-attachments/assets/8e706f3b-749f-44f4-bc29-fb71b1c481c0" />
   - 编辑后记得退出编辑模式！
 - 背景图管理
@@ -31,11 +32,13 @@
     <img width="1495" height="544" alt="image" src="https://github.com/user-attachments/assets/47287d69-da1d-4fb5-bf06-2a5face65bf2" />
 - 角色卡绑定美化
   - 如图所示：
+    
     <img width="652" height="435" alt="image" src="https://github.com/user-attachments/assets/fb2e7cbd-8f78-42ce-ada6-7235780381bf" />
     <img width="1110" height="726" alt="image" src="https://github.com/user-attachments/assets/22706421-0d4d-4d25-a306-d51f30825657" />
   - 一个美化可以被多个角色卡绑定。
 - 文件夹排序
   - 如图：
+    
     <img width="483" height="652" alt="image" src="https://github.com/user-attachments/assets/195cbbf4-7750-45ac-b908-68ea8ac92be7" />
 - 单独功能
   - 点击美化名右边的星星符号即可收藏，被收藏的美化会自动移入最上方的收藏夹，再次点击星星可取消收藏。
@@ -45,8 +48,8 @@
     <img width="478" height="435" alt="image" src="https://github.com/user-attachments/assets/1c4cf20b-66e5-4cd5-8207-d2b370b0c8d1" />
   - 单个修改文件夹名称
   - 单个解散文件夹
+    
     <img width="480" height="72" alt="image" src="https://github.com/user-attachments/assets/1bc275c4-14da-4e66-b306-213d0a5fdcfc" />
-
 - 搜索
   - 美化太多了找不到想要的？点击上方搜索栏，支持模糊搜索，只要你能记得你想要找的美化名任何一个字就行。
   - 搜索完记得删掉搜索框的文字捏，不然文件夹内只显示对应美化了。
@@ -63,6 +66,7 @@
   - 当前正在应用的美化会被圈出来，多选时被选中的美化也会有颜色区分。
 - 刷新提醒
   - 实在没肘赢热刷新，所以请操作完后手动刷新页面，不然你本轮操作过的文件点击是没反应的（“收藏”和“调整顺序”操作除外）。操作完会有刷新提示：
+    
     <img width="483" height="241" alt="image" src="https://github.com/user-attachments/assets/bbaac704-a7a7-4ace-b32c-0782e3d9b0fa" />
 
     

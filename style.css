@@ -18,7 +18,7 @@
 .theme-manager-actions { display: flex; flex-wrap: wrap; }
 .theme-manager-actions input[type="search"] { flex-grow: 1; background-color: var(--SmartThemeBlurTintColor); border: 1px solid var(--SmartThemeBorderColor); color: var(--SmartThemeBodyColor); border-radius: 4px; min-width: 150px; max-height: 30px; margin: 5px 0 0 0; }
 .theme-manager-actions button, #batch-actions-bar button { padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
-.theme-manager-actions button.selected, #batch-actions-bar button { background-color: var(--SmartThemeBodyColor, #007bff); color: white; border-color: transparent; }
+.theme-manager-actions button.selected, #batch-actions-bar button { background-color: var(--SmartThemeBodyColor, #007bff); color: white; border-color: transparent; text-shadow: 0 0 3px rgba(0, 0, 0, 0.8) !important; }
 #batch-actions-bar, #background-actions-bar { display: none; flex-wrap: wrap; gap: 8px; background-color: transparent; padding: 0; border-radius: 4px; margin-bottom: 10px; }
 #batch-actions-bar.visible, #background-actions-bar.visible { display: flex; }
 #native-buttons-container { display: flex; gap: 5px; margin-left: auto; }
@@ -46,7 +46,7 @@
 #theme-manager-panel.batch-edit-mode .theme-category-title { cursor: pointer; }
 #theme-manager-panel.batch-edit-mode .theme-category-title:hover { background-color: rgba(255, 255, 255, 0.1); }
 #theme-manager-panel.batch-edit-mode .folder-buttons { display: none; }
-#theme-manager-panel.batch-edit-mode .folder-select-checkbox { display: inline-block; position: relative; -webkit-appearance: none; appearance: none; background-color: transparent; border: 1px solid var(--SmartThemeBorderColor, #888); border-radius: 3px; width: 15px; height: 15px; margin-right: 8px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
+#theme-manager-panel.batch-edit-mode .folder-select-checkbox { display: inline-block; position: relative; -webkit-appearance: none; appearance: none; background-color: transparent; box-shadow: 0 0 5px #888; border: 1px solid var(--SmartThemeBorderColor, #888); border-radius: 3px; width: 15px; height: 15px; margin-right: 8px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
 #theme-manager-panel.batch-edit-mode .folder-select-checkbox::before { content: '✔'; position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 14px; font-weight: bold; color: var(--SmartThemeCheckboxTickColorValue, white); transition: transform 0.1s ease-in-out; }
 #theme-manager-panel.batch-edit-mode .folder-select-checkbox:checked::before { transform: translate(-50%, -50%) scale(1); }
 .theme-category-title.selected-for-batch { background-color: var(--SmartThemeBodyColor, #0056b3); color: #dadee1; }
@@ -67,7 +67,7 @@
 
 .link-bg-btn, .unbind-bg-btn { font-family: 'Font Awesome 6 Free'; font-weight: 900; }
 .link-bg-btn { color: var(--SmartThemeBodyColor); }
-.link-bg-btn.linked { color: var(--SmartThemeQuoteColor, #007bff); text-shadow: 0 0 5px var(--SmartThemeQuoteColor, #007bff); }
+.link-bg-btn.linked { color: var(--SmartThemeQuoteColor, #007bff); text-shadow: 0 0 5px var(--SmartThemeQuoteColor, #007bff) !important; }
 
 @media (max-width: 768px) {
     .theme-list > .theme-item { width: 100%; box-sizing: border-box; flex-wrap: wrap; justify-content: flex-start; }
@@ -162,3 +162,5 @@
 }
 
 /* ======== END: 最终优化样式 ======== */
+
+

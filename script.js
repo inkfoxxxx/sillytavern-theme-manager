@@ -125,23 +125,23 @@
                         <div class="theme-manager-actions" data-mode="theme">
                             <div class="tm-button-row">
                                 <input type="search" id="theme-search-box" placeholder="🔍 搜索主题...">
-                                <button id="random-theme-btn" title="随机应用一个主题">🎲 随机</button>
+                                <button id="random-theme-btn" class="menu_button" title="随机应用一个主题">🎲 随机</button>
                             </div>
                             <div class="tm-button-row">
-                                <button id="batch-edit-btn" title="进入/退出批量编辑模式">🔧 批量编辑</button>
-                                <button id="batch-import-btn" title="从文件批量导入主题">📂 批量导入</button>
-                                <button id="manage-bgs-btn" title="管理背景图">🖼️ 管理背景</button>
+                                <button id="batch-edit-btn" class="menu_button" title="进入/退出批量编辑模式">🔧 批量编辑</button>
+                                <button id="batch-import-btn" class="menu_button" title="从文件批量导入主题">📂 批量导入</button>
+                                <button id="manage-bgs-btn" class="menu_button" title="管理背景图">🖼️ 管理背景</button>
                             </div>
                         </div>
                         <div class="theme-manager-actions" data-mode="shared">
                             <div class="tm-button-row">
-                                <button id="reorder-mode-btn" title="调整文件夹顺序">🔄 调整顺序</button>
-                                <button id="expand-all-btn" title="展开所有文件夹">全部展开</button>
-                                <button id="collapse-all-btn" title="折叠所有文件夹">全部折叠</button>
+                                <button id="reorder-mode-btn" class="menu_button" title="调整文件夹顺序">🔄 调整顺序</button>
+                                <button id="expand-all-btn" class="menu_button" title="展开所有文件夹">全部展开</button>
+                                <button id="collapse-all-btn" class="menu_button" title="折叠所有文件夹">全部折叠</button>
                             </div>
                             <div class="tm-button-row">
-                                <button id="tm-export-settings-btn" title="导出一个包含所有插件设置的配置文件，用于在不同设备间同步。">📤 导出配置</button>
-                                <button id="tm-import-settings-btn" title="从配置文件中导入插件设置。">📥 导入配置</button>
+                                <button id="tm-export-settings-btn" class="menu_button" title="导出一个包含所有插件设置的配置文件，用于在不同设备间同步。">📤 导出配置</button>
+                                <button id="tm-import-settings-btn" class="menu_button" title="从配置文件中导入插件设置。">📥 导入配置</button>
                             </div>
                         </div>
                         <div id="background-actions-bar" style="display:none;" data-mode="bg">
@@ -1352,6 +1352,38 @@
                     }, 50);
                 });
 
+                // 监听欢迎页面“最近的聊天”列表的点击事件，以自动应用美化
+                document.getElementById('chat').addEventListener('click', (event) => {
+                    // 1. 检查点击的是否是聊天记录项
+                    const recentChatBlock = event.target.closest('.recentChat');
+
+                    // 如果不是，或者找不到，就直接退出
+                    if (!recentChatBlock) return;
+
+                    // 2. 从 data-avatar 属性直接获取角色头像文件名
+                    const characterAvatar = recentChatBlock.dataset.avatar;
+                    if (!characterAvatar) return;
+
+                    // 使用一个短暂的延时，确保SillyTavern的其他点击处理已完成
+                    setTimeout(() => {
+                        // 3. 接下来的逻辑与你已有的功能完全相同
+                        const bindings = JSON.parse(localStorage.getItem(CHARACTER_THEME_BINDINGS_KEY)) || {};
+                        const boundTheme = bindings[characterAvatar];
+
+                        if (boundTheme) {
+                            const themeSelect = document.querySelector('#themes');
+                            const themeOption = themeSelect.querySelector(`option[value="${boundTheme}"]`);
+
+                            if (themeOption && themeSelect.value !== boundTheme) {
+                                console.log(`[Theme Manager] 从欢迎页应用绑定的美化: ${boundTheme}`);
+                                themeSelect.value = boundTheme;
+                                themeSelect.dispatchEvent(new Event('change'));
+                                toastr.info(`已自动应用角色绑定的美化：<b>${boundTheme}</b>`, '', {timeOut: 2000, escapeHtml: false});
+                            }
+                        }
+                    }, 50); // 50毫秒的延时通常足够了
+                });
+
                 // ==========================================================
                 // ======================= 功能结束 =========================
                 // ==========================================================
@@ -1381,3 +1413,4 @@
         }
     }, 250);
 })();
+

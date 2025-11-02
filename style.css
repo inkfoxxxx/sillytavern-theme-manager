@@ -1,9 +1,7 @@
-/* 主题仪表盘 (v21.6 Adaptive Checkmark) 样式 */
+/* 主题仪表盘 (v.25) 样式 */
 
 #theme-manager-panel { 
-    background-color: var(--blur-tint-color); 
     border-radius: 8px; 
-    border: 1px solid var(--border-color); 
     width: 100%; 
     box-sizing: border-box;
     flex-basis: 100% !important;
@@ -12,36 +10,35 @@
 
 #theme-manager-header { cursor: pointer; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
 #theme-manager-header:hover { background-color: rgba(0,0,0,0.05); } 
-#theme-manager-header h4 { margin: 0; border: none; padding: 0; color: var(--main-text-color); background:none; }
-#theme-manager-toggle-icon { transition: transform 0.3s ease; color: var(--main-text-color); }
+#theme-manager-header h4 { margin: 0; border: none; padding: 0; color: var(--SmartThemeBodyColor); background: none !important; }
+#theme-manager-toggle-icon { transition: transform 0.3s ease; color: var(--SmartThemeBodyColor); }
 #theme-manager-toggle-icon.collapsed { transform: rotate(-90deg); }
 #theme-manager-content { transition: max-height 0.3s ease-in-out; overflow: hidden; }
 #UI-presets-block { gap: 0 !important; }
-.theme-manager-actions { display: flex; gap: 8px; margin: 10px 0; flex-wrap: wrap; }
-.theme-manager-actions input[type="search"] { flex-grow: 1; background-color: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: var(--main-text-color); border-radius: 4px; padding: 5px 8px; min-width: 150px; }
-.theme-manager-actions button, #batch-actions-bar button { background-color: rgba(128,128,128,0.2); color: var(--main-text-color); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
-.theme-manager-actions button:hover, #batch-actions-bar button:hover { background-color: rgba(128,128,128,0.4); }
-.theme-manager-actions button.selected, #batch-actions-bar button { background-color: var(--primary-color, #007bff); color: white; border-color: transparent; }
+.theme-manager-actions { display: flex; flex-wrap: wrap; }
+.theme-manager-actions input[type="search"] { flex-grow: 1; background-color: var(--SmartThemeBlurTintColor); border: 1px solid var(--SmartThemeBorderColor); color: var(--SmartThemeBodyColor); border-radius: 4px; min-width: 150px; max-height: 30px; margin: 5px 0 0 0; }
+.theme-manager-actions button, #batch-actions-bar button { padding: 5px 10px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
+.theme-manager-actions button.selected, #batch-actions-bar button { background-color: var(--SmartThemeBodyColor, #007bff); color: white; border-color: transparent; }
 #batch-actions-bar, #background-actions-bar { display: none; flex-wrap: wrap; gap: 8px; background-color: transparent; padding: 0; border-radius: 4px; margin-bottom: 10px; }
 #batch-actions-bar.visible, #background-actions-bar.visible { display: flex; }
 #native-buttons-container { display: flex; gap: 5px; margin-left: auto; }
-.theme-category-title { font-weight: bold; color: var(--quote-color); cursor: pointer; padding: 8px 5px; background-color: rgba(0,0,0,0.15); border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.2s; }
+.theme-category-title { font-weight: bold; color: var(--SmartThemeBodyColor); cursor: pointer; padding: 8px 5px; background-color: rgba(255, 255, 255, 0.1); border-radius: 4px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; transition: background-color 0.2s; }
 .dissolve-folder-btn { background: none; border: none; color: var(--danger-color, #ff5555); cursor: pointer; font-size: 14px; opacity: 0.7; }
 
 .folder-buttons { display: flex; gap: 8px; align-items: center; }
-.rename-folder-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.7; padding: 2px 5px; color: var(--main-text-color); transition: opacity 0.2s, transform 0.2s; }
+.rename-folder-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.7; padding: 2px 5px; color: var(--SmartThemeBodyColor); transition: opacity 0.2s, transform 0.2s; }
 .rename-folder-btn:hover, .dissolve-folder-btn:hover { opacity: 1; transform: scale(1.2); }
 
 .theme-list { display: flex; flex-direction: column; gap: 2px; padding-left: 0; margin-top: 5px; width: 100%; box-sizing: border-box; }
-.theme-list > .theme-item { width: 100%; box-sizing: border-box; padding: 8px; border-radius: 4px; list-style: none; color: var(--main-text-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 2px solid transparent; transition: background-color 0.2s, border-color 0.2s; }
+.theme-list > .theme-item { width: 100%; box-sizing: border-box; padding: 8px; border-radius: 4px; list-style: none; color: var(--SmartThemeBodyColor); display: flex; justify-content: space-between; align-items: center; cursor: pointer; border: 2px solid transparent; transition: background-color 0.2s, border-color 0.2s; }
 .theme-item-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; padding-right: 10px; }
 .theme-item:hover { background-color: rgba(128,128,128,0.2); }
-.theme-item.active { border-color: var(--quote-color); background-color: color-mix(in srgb, var(--quote-color) 20%, transparent); font-weight: bold; }
+.theme-item.active { border-color: var(--SmartThemeQuoteColor); background-color: color-mix(in srgb, var(--SmartThemeQuoteColor) 20%, transparent); font-weight: bold; }
 .theme-item.selected-for-batch { background-color: var(--primary-color, #0056b3); color: white; }
-.theme-item.active.selected-for-batch { box-shadow: 0 0 0 2px var(--quote-color); }
+.theme-item.active.selected-for-batch { box-shadow: 0 0 0 2px var(--SmartThemeQuoteColor); }
 .batch-edit-mode .theme-item-buttons { display: none; }
 .theme-item-buttons { display: flex; gap: 5px; flex-shrink: 0; }
-.theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--main-text-color); }
+.theme-item-buttons button { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--SmartThemeBodyColor); }
 .theme-item-buttons button:hover { opacity: 1; transform: scale(1.2); }
 .theme-item:hover .theme-item-buttons button { opacity: 1; }
 
@@ -49,17 +46,17 @@
 #theme-manager-panel.batch-edit-mode .theme-category-title { cursor: pointer; }
 #theme-manager-panel.batch-edit-mode .theme-category-title:hover { background-color: rgba(255, 255, 255, 0.1); }
 #theme-manager-panel.batch-edit-mode .folder-buttons { display: none; }
-#theme-manager-panel.batch-edit-mode .folder-select-checkbox { display: inline-block; position: relative; -webkit-appearance: none; appearance: none; background-color: transparent; border: 1px solid var(--border-color, #888); border-radius: 3px; width: 15px; height: 15px; margin-right: 8px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
-#theme-manager-panel.batch-edit-mode .folder-select-checkbox::before { content: '✔'; position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 14px; font-weight: bold; color: var(--SmartThemeCheckboxTickColor, white); transition: transform 0.1s ease-in-out; }
+#theme-manager-panel.batch-edit-mode .folder-select-checkbox { display: inline-block; position: relative; -webkit-appearance: none; appearance: none; background-color: transparent; border: 1px solid var(--SmartThemeBorderColor, #888); border-radius: 3px; width: 15px; height: 15px; margin-right: 8px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
+#theme-manager-panel.batch-edit-mode .folder-select-checkbox::before { content: '✔'; position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%) scale(0); font-size: 14px; font-weight: bold; color: var(--SmartThemeCheckboxTickColorValue, white); transition: transform 0.1s ease-in-out; }
 #theme-manager-panel.batch-edit-mode .folder-select-checkbox:checked::before { transform: translate(-50%, -50%) scale(1); }
-.theme-category-title.selected-for-batch { background-color: var(--primary-color, #0056b3); color: white; }
-.theme-category-title.selected-for-batch:hover { background-color: color-mix(in srgb, var(--primary-color, #0056b3) 90%, white); }
+.theme-category-title.selected-for-batch { background-color: var(--SmartThemeBodyColor, #0056b3); color: #dadee1; }
+.theme-category-title.selected-for-batch:hover { background-color: color-mix(in srgb, var(--SmartThemeBodyColor, #0056b3) 90%, #dadee1); }
 .theme-category-title.selected-for-batch span { color: white; }
 .theme-category-title.selected-for-batch .folder-select-checkbox { border-color: white; }
 .theme-category-title.selected-for-batch .folder-select-checkbox:checked { background-color: rgba(255, 255, 255, 0.3); }
 
 .folder-reorder-buttons { display: none; gap: 8px; }
-.move-folder-up-btn, .move-folder-down-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.7; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--main-text-color); }
+.move-folder-up-btn, .move-folder-down-btn { background: none; border: none; cursor: pointer; font-size: 16px; opacity: 0.7; transition: opacity 0.2s, transform 0.2s; padding: 2px; color: var(--SmartThemeBodyColor); }
 .move-folder-up-btn:hover, .move-folder-down-btn:hover { opacity: 1; transform: scale(1.2); }
 
 #theme-manager-panel.reorder-mode .folder-buttons,
@@ -69,8 +66,8 @@
 #theme-manager-panel.reorder-mode .theme-category-title { cursor: ns-resize; }
 
 .link-bg-btn, .unbind-bg-btn { font-family: 'Font Awesome 6 Free'; font-weight: 900; }
-.link-bg-btn { color: var(--main-text-color); }
-.link-bg-btn.linked { color: var(--primary-color, #007bff); text-shadow: 0 0 5px var(--primary-color, #007bff); }
+.link-bg-btn { color: var(--SmartThemeBodyColor); }
+.link-bg-btn.linked { color: var(--SmartThemeQuoteColor, #007bff); text-shadow: 0 0 5px var(--SmartThemeQuoteColor, #007bff); }
 
 @media (max-width: 768px) {
     .theme-list > .theme-item { width: 100%; box-sizing: border-box; flex-wrap: wrap; justify-content: flex-start; }
@@ -83,7 +80,6 @@
 /* --- 插件内部操作按钮重新布局 --- */
 .theme-manager-actions {
     flex-direction: column; /* 让按钮行垂直排列 */
-    gap: 8px; /* 统一行间距 */
 }
 .tm-button-row {
     display: flex;
@@ -93,6 +89,7 @@
 /* 第一行：搜索框自适应，按钮固定宽度 */
 .tm-button-row #theme-search-box {
     flex-grow: 1;
+    justify-content: center;
 }
 .tm-button-row #random-theme-btn {
     flex-grow: 0;
@@ -136,7 +133,7 @@
 }
 
 #theme-manager-panel .bg_example:hover { 
-    border-color: var(--quote-color); 
+    border-color: var(--SmartThemeQuoteColor); 
 }
 
 .bg-select-checkbox { 
@@ -147,12 +144,12 @@
     height: 20px; 
     z-index: 10; 
     cursor: pointer; 
-    accent-color: var(--primary-color, #007bff); /* 让复选框的颜色更好看 */
+    accent-color: var(--SmartThemeBodyColor, #007bff); /* 让复选框的颜色更好看 */
 }
 
 #theme-manager-panel .bg_example.selected-for-batch { 
-    border-color: var(--primary-color, #007bff); 
-    box-shadow: 0 0 8px var(--primary-color, #007bff); 
+    border-color: var(--SmartThemeBodyColor, #007bff); 
+    box-shadow: 0 0 8px var(--SmartThemeBodyColor, #007bff); 
 }
 
 /* 确保图片和视频能正确填充容器 */
